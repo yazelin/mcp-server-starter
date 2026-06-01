@@ -13,8 +13,8 @@
 
 - 你使用的 Python 版本
 - 啟動指令
-- `.env` 裡有哪些 key 已設定；不要貼出 secret 值
-- webhook / endpoint URL
+- `MCP_WORKSPACE` 設定到哪個目錄；不要貼出實際路徑中的敏感資訊
+- client（Claude Desktop 等）的 server 設定內容
 - 錯誤訊息完整內容
 - 你預期發生什麼、實際發生什麼
 
