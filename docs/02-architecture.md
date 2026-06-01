@@ -3,7 +3,7 @@
 ## 核心檔案
 
 - server.py：單檔 MCP JSON-RPC stdio server
-- tools()：宣告 echo / now / read_text_file 三個工具
+- tools()：宣告 echo / now / read_text_file / word_count 工具（word_count 是 03 教學示範新增的範例工具）
 - call()：依工具名稱執行實際邏輯
 - safe()：用 MCP_WORKSPACE 做最基本的檔案安全邊界
 - client_smoke_test.py：用 subprocess 模擬 MCP client 呼叫 server

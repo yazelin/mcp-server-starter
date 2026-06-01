@@ -30,7 +30,7 @@ Developers who want to connect Claude/Cursor/agents to their own tools.
 ## Features
 
 - JSON-RPC stdio server
-- Example tools: echo, now, read_text_file
+- Example tools: echo, now, read_text_file, word_count
 - Workspace safety boundary
 - Smoke test client
 
