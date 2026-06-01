@@ -1,3 +1,5 @@
+![Brand banner](assets/banner.svg)
+
 # MCP Server Starter
 
 Learn MCP by building a tiny dependency-light tool server.
@@ -35,3 +37,11 @@ This repo is also a CTA page for workshops and consulting:
 ## License
 
 MIT
+
+
+## Brand / CTA design
+
+- Landing page: https://yazelin.github.io/mcp-server-starter/
+- CI spec: [DESIGN.md](DESIGN.md)
+- Banner: [assets/banner.svg](assets/banner.svg)
+- Logo: [assets/logo.svg](assets/logo.svg)
