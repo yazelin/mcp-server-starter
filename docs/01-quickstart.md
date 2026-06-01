@@ -24,21 +24,23 @@ python client_smoke_test.py
 python server.py
 ```
 
-## 健康檢查
+## 驗證跑通
 
 ```bash
 python client_smoke_test.py
 ```
 
-## 常用入口
+會印出 initialize、tools/list、tools/call 三段 JSON-RPC 回應即代表正常。
 
-- stdio JSON-RPC：initialize
-- stdio JSON-RPC：tools/list
-- stdio JSON-RPC：tools/call
+## 常用入口（皆為 stdio JSON-RPC，無 HTTP endpoint）
+
+- initialize
+- tools/list
+- tools/call
 
 ## 第一次成功的標準
 
-- 服務能啟動
-- 基本 endpoint 有回應
-- 範例流程能跑通
-- 秘密 token 沒有 commit 到 GitHub
+- `python server.py` 能逐行讀取 stdin 並回應 JSON-RPC
+- smoke test 三段回應都正常
+- 設好 `MCP_WORKSPACE`，`read_text_file` 只能讀到範圍內檔案
+- 沒有把任何 secret 或 workspace 路徑誤 commit 到 GitHub

@@ -10,11 +10,13 @@
 
 ## 資料流
 
-1. 使用者或 client 發出請求。
-2. FastAPI / stdio 入口接收資料。
-3. handler 解析訊息與設定。
-4. adapter / tool / search 層執行實際工作。
-5. 回傳最小可理解的結果。
+這是純 stdio 的 MCP server，沒有 HTTP framework（不是 FastAPI），整個傳輸就是標準輸入／輸出上的換行分隔 JSON-RPC。
+
+1. client（例如 Claude Desktop）以 subprocess 啟動 server，透過 stdin 送進一行 JSON-RPC 請求（newline-delimited JSON-RPC）。
+2. `main()` 逐行讀取 stdin，`json.loads` 解析後交給 `handle()`。
+3. `handle()` 依 method 分派：`initialize`、`tools/list`、`tools/call`、`notifications/initialized`。
+4. `tools/call` 進入 `call()` 執行對應工具（echo / now / read_text_file），檔案類工具一律經過 `safe()` 限制在 `MCP_WORKSPACE` 內。
+5. 結果以換行分隔 JSON-RPC 寫回 stdout 給 client；notification 類訊息不回應。
 
 ## 設計原則
 

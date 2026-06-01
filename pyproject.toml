@@ -1,5 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name="mcp-server-starter"
-version="0.1.0"
-description="Minimal dependency-light MCP server starter"
-requires-python=">=3.10"
+name = "mcp-server-starter"
+version = "0.1.0"
+description = "Minimal dependency-light MCP server starter"
+requires-python = ">=3.10"
+
+[project.scripts]
+mcp-server-starter = "server:main"
+
+[tool.hatch.build.targets.wheel]
+# server.py is a single top-level module (not a package).
+only-include = ["server.py"]
+
+[tool.hatch.build.targets.wheel.sources]
+"server.py" = "server.py"

@@ -79,12 +79,13 @@ python client_smoke_test.py
 <li>client_smoke_test.py：用 subprocess 模擬 MCP client 呼叫 server</li>
 </ul>
 <h3>資料流</h3>
+<p>這是純 stdio 的 MCP server，沒有 HTTP framework（不是 FastAPI），傳輸就是標準輸入／輸出上的換行分隔 JSON-RPC。</p>
 <ol>
-<li>使用者或 client 發出請求。</li>
-<li>FastAPI / stdio 入口接收資料。</li>
-<li>handler 解析訊息與設定。</li>
-<li>adapter / tool / search 層執行實際工作。</li>
-<li>回傳最小可理解的結果。</li>
+<li>client（例如 Claude Desktop）以 subprocess 啟動 server，透過 stdin 送進一行 JSON-RPC 請求。</li>
+<li>main() 逐行讀取 stdin，json.loads 解析後交給 handle()。</li>
+<li>handle() 依 method 分派：initialize / tools/list / tools/call / notifications/initialized。</li>
+<li>tools/call 進入 call() 執行對應工具；檔案類工具一律經過 safe() 限制在 MCP_WORKSPACE 內。</li>
+<li>結果以換行分隔 JSON-RPC 寫回 stdout；notification 類訊息不回應。</li>
 </ol>
 <h3>設計原則</h3>
 <ul>
@@ -106,41 +107,37 @@ python client_smoke_test.py
 <ul>
 <li>你使用的 Python 版本</li>
 <li>啟動指令</li>
-<li>`.env` 裡有哪些 key 已設定；不要貼出 secret 值</li>
-<li>webhook / endpoint URL</li>
+<li>MCP_WORKSPACE 設定到哪個目錄；不要貼出敏感路徑</li>
+<li>client（Claude Desktop 等）的 server 設定內容</li>
 <li>錯誤訊息完整內容</li>
 <li>你預期發生什麼、實際發生什麼</li>
 </ul>
 <h3>下一個里程碑</h3>
-<p>完成最小流程後，不要急著加功能。先找一個真實情境，讓這個 starter 解決一個很小但明確的問題。</p></section><section><h2>MCP Server 入門模板：部署筆記</h2>
-<h3>部署前檢查</h3>
+<p>完成最小流程後，不要急著加功能。先找一個真實情境，讓這個 starter 解決一個很小但明確的問題。</p></section><section><h2>MCP Server 入門模板：部署與接入</h2>
+<p>這是純 stdio 的 MCP server：沒有 HTTP port、沒有 /health endpoint，也不部署到 Render / Railway / Fly.io。MCP client（例如 Claude Desktop）會把它當 subprocess 啟動，透過標準輸入／輸出交換 JSON-RPC。「部署」其實是「讓 client 知道怎麼啟動這支程式」。</p>
+<h3>接入前檢查</h3>
 <ul>
-<li>本機流程已經跑通。</li>
-<li>`.env` 沒有被 commit。</li>
-<li>README 的啟動指令與實際程式一致。</li>
-<li>`/health` 或等價檢查 endpoint 可用。</li>
-<li>外部服務 token 已放在部署平台 secrets。</li>
+<li>本機流程已經跑通（python client_smoke_test.py 印出三段 JSON-RPC 回應）。</li>
+<li>設好 MCP_WORKSPACE，read_text_file 只能讀到預期目錄。</li>
+<li>server.py（或安裝後的 mcp-server-starter 指令）是 client 能存取的絕對路徑。</li>
+<li>stdout 只輸出 JSON-RPC，debug 訊息寫 stderr，否則破壞 framing。</li>
 </ul>
-<h3>啟動指令</h3>
-<pre><code>
-python client_smoke_test.py
-
+<h3>在 Claude Desktop 設定啟動方式</h3>
+<pre><code>{
+  "mcpServers": {
+    "mcp-server-starter": {
+      "command": "python",
+      "args": ["/absolute/path/to/mcp-server-starter/server.py"],
+      "env": { "MCP_WORKSPACE": "/absolute/path/to/your/workspace" }
+    }
+  }
+}
 </code></pre>
-<h3>常見部署選項</h3>
-<ul>
-<li>Render / Railway / Fly.io：適合快速 demo。</li>
-<li>VPS + Docker / systemd：適合長期自管。</li>
-<li>公司內網主機：適合企業內部工具，但要處理網路與權限。</li>
-<li>NAS / edge gateway：適合工業或內部自動化場景。</li>
-</ul>
-<h3>部署後驗證</h3>
-<pre><code>
-python client_smoke_test.py
-
-</code></pre>
-<p>接著再測真正的業務流程，不要只看服務有沒有啟動。</p>
+<p>設定後重啟 client，server 會在需要時被自動啟動，用完即關，不需常駐。</p>
+<h3>想放到雲端？</h3>
+<p>若要讓遠端 client 透過網路連線，需自行加上 HTTP / SSE transport。本 starter 只示範 stdio，<strong>不包含</strong> HTTP/SSE transport。</p>
 <h3>實務提醒</h3>
-<p>部署不是最後一步。正式使用前至少要補：log、錯誤告警、權限控管、備份策略、secret rotation，以及基本監控。</p></section><section><h2>MCP Server 入門模板：常見問題與踩雷清單</h2>
+<p>接入不是最後一步。正式使用前至少要補：log（寫 stderr，別污染 stdout）、錯誤告警、workspace 權限控管、備份策略，以及對 read_text_file 之類工具的存取範圍稽核。</p></section><section><h2>MCP Server 入門模板：常見問題與踩雷清單</h2>
 <h3>常見坑</h3>
 <ul>
 <li>MCP stdio server 不應該把 debug log 印到 stdout，否則會污染 JSON-RPC；debug 請印 stderr。</li>
