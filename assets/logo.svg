@@ -1,1 +1,27 @@
-<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#a78bfa'/><stop offset='1' stop-color='#7c3aed'/></linearGradient></defs><rect width='512' height='512' rx='116' fill='#0f0a1f'/><g transform='scale(.9) translate(28 28)'><rect x='108' y='92' width='304' height='304' rx='46' fill='none' stroke='url(#g)' stroke-width='18'/><circle cx='178' cy='176' r='34' fill='url(#g)'/><circle cx='342' cy='176' r='34' fill='url(#g)'/><circle cx='178' cy='312' r='34' fill='url(#g)'/><circle cx='342' cy='312' r='34' fill='url(#g)'/><path d='M212 176 H308 M178 210 V278 M342 210 V278 M212 312 H308' stroke='white' stroke-opacity='.8' stroke-width='14' stroke-linecap='round'/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="MCP Server logo">
+<defs>
+  <linearGradient id="gradL" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#7c3aed"/></linearGradient>
+  <linearGradient id="bggL" x1="0" y1="0" x2="0.6" y2="1">
+    <stop offset="0" stop-color="#1d1c39"/><stop offset="1" stop-color="#0f0a1f"/></linearGradient>
+  <radialGradient id="glowL" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#a78bfa" stop-opacity="0.55"/>
+    <stop offset="0.55" stop-color="#7c3aed" stop-opacity="0.12"/>
+    <stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></radialGradient>
+  <filter id="blurL" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="9"/></filter>
+  <linearGradient id="sheenL" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+    <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+  <pattern id="gridL" width="32" height="32" patternUnits="userSpaceOnUse">
+    <path d="M32 0H0V32" fill="none" stroke="#a78bfa" stroke-opacity="0.05" stroke-width="1"/></pattern>
+</defs>
+<rect width="512" height="512" rx="116" fill="url(#bggL)"/>
+<rect width="512" height="512" rx="116" fill="url(#gridL)"/>
+<circle cx="256" cy="236" r="190" fill="url(#glowL)"/>
+<circle cx="256" cy="256" r="150" fill="none" stroke="url(#gradL)" stroke-opacity="0.25" stroke-width="2"/>
+<rect width="512" height="512" rx="116" fill="url(#sheenL)"/>
+<g filter="url(#blurL)" opacity="0.45"><g transform="translate(144.00 152.00) scale(9.3333)" fill="#000000" fill-rule="evenodd"><path d="M15.688 2.343a2.588 2.588 0 00-3.61 0l-9.626 9.44a.863.863 0 01-1.203 0 .823.823 0 010-1.18l9.626-9.44a4.313 4.313 0 016.016 0 4.116 4.116 0 011.204 3.54 4.3 4.3 0 013.609 1.18l.05.05a4.115 4.115 0 010 5.9l-8.706 8.537a.274.274 0 000 .393l1.788 1.754a.823.823 0 010 1.18.863.863 0 01-1.203 0l-1.788-1.753a1.92 1.92 0 010-2.754l8.706-8.538a2.47 2.47 0 000-3.54l-.05-.049a2.588 2.588 0 00-3.607-.003l-7.172 7.034-.002.002-.098.097a.863.863 0 01-1.204 0 .823.823 0 010-1.18l7.273-7.133a2.47 2.47 0 00-.003-3.537z"></path><path d="M14.485 4.703a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a4.115 4.115 0 000 5.9 4.314 4.314 0 006.016 0l7.12-6.982a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a2.588 2.588 0 01-3.61 0 2.47 2.47 0 010-3.54l7.12-6.982z"></path></g></g><g transform="translate(144.00 144.00) scale(9.3333)" fill="url(#gradL)" fill-rule="evenodd"><path d="M15.688 2.343a2.588 2.588 0 00-3.61 0l-9.626 9.44a.863.863 0 01-1.203 0 .823.823 0 010-1.18l9.626-9.44a4.313 4.313 0 016.016 0 4.116 4.116 0 011.204 3.54 4.3 4.3 0 013.609 1.18l.05.05a4.115 4.115 0 010 5.9l-8.706 8.537a.274.274 0 000 .393l1.788 1.754a.823.823 0 010 1.18.863.863 0 01-1.203 0l-1.788-1.753a1.92 1.92 0 010-2.754l8.706-8.538a2.47 2.47 0 000-3.54l-.05-.049a2.588 2.588 0 00-3.607-.003l-7.172 7.034-.002.002-.098.097a.863.863 0 01-1.204 0 .823.823 0 010-1.18l7.273-7.133a2.47 2.47 0 00-.003-3.537z"></path><path d="M14.485 4.703a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a4.115 4.115 0 000 5.9 4.314 4.314 0 006.016 0l7.12-6.982a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a2.588 2.588 0 01-3.61 0 2.47 2.47 0 010-3.54l7.12-6.982z"></path></g>
+<rect x="2" y="2" width="508" height="508" rx="114" fill="none" stroke="#ffffff" stroke-opacity="0.07" stroke-width="2"/>
+<rect x="0.75" y="0.75" width="510.5" height="510.5" rx="116" fill="none" stroke="url(#gradL)" stroke-opacity="0.4" stroke-width="1.5"/>
+</svg>
