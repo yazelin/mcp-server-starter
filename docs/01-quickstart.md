@@ -7,8 +7,25 @@
 - Python 3.10+
 - Git
 - 會用終端機
+- [uv](https://docs.astral.sh/uv/)（本教學的環境管理工具）
 
 不需要任何 API key，也不需要外部服務。這個 starter 只用 Python 標準函式庫，沒有第三方相依套件。
+
+### 安裝 uv（一次就好）
+
+Ubuntu / macOS：
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Windows（PowerShell）：
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+裝完重開終端機，`uv --version` 印得出版本就 OK。`uv sync` 會依 `pyproject.toml` + `uv.lock` 自動建立 `.venv` 並裝好套件（毋須手動 venv / activate），`uv run` 直接在那個環境裡執行。**以下 `uv sync` / `uv run` 在 Ubuntu 與 Windows 完全相同。**
 
 ## 這個 server 是什麼（先讀一句）
 
@@ -21,9 +38,21 @@
 ```bash
 git clone https://github.com/yazelin/mcp-server-starter.git
 cd mcp-server-starter
+uv sync
 ```
 
-成功的話你會看到：clone 完成，且 `ls` 看得到 `server.py`、`client_smoke_test.py`、`docs/`。
+成功的話你會看到：clone 完成，`ls` 看得到 `server.py`、`client_smoke_test.py`、`docs/`，而 `uv sync` 印出類似下面的訊息（會建立 `.venv` 並 build 本專案）：
+
+```
+Using CPython 3.11.13
+Creating virtual environment at: .venv
+Resolved 1 package in 1ms
+   Building mcp-server-starter @ file:///path/to/mcp-server-starter
+      Built mcp-server-starter @ file:///path/to/mcp-server-starter
+Prepared 1 package in 942ms
+Installed 1 package in 0.76ms
+ + mcp-server-starter==0.1.0 (from file:///path/to/mcp-server-starter)
+```
 
 ## 步驟 2：跑 smoke test（最快的驗證）
 
@@ -32,7 +61,7 @@ cd mcp-server-starter
 實際指令：
 
 ```bash
-python client_smoke_test.py
+uv run python client_smoke_test.py
 ```
 
 真實輸出（這是實際跑出來的，不是示意）：
@@ -62,7 +91,7 @@ printf '%s\n' \
 '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
 '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
 '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"now","arguments":{}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 ```
 
 真實輸出（`now` 那一行的時間會跟著你目前時間變）：
@@ -75,6 +104,8 @@ printf '%s\n' \
 
 成功的話你會看到：`id:3` 回了一個目前的本地時間（ISO 8601 格式）。
 
+> 平台差異：`uv sync` / `uv run` 兩平台完全相同。只有上面這種 `printf ... | ...` 多行 pipe 是 bash 寫法（Ubuntu / macOS / WSL）。在 Windows 原生 PowerShell 裡，最省事的做法是直接跑 `uv run python client_smoke_test.py`（步驟 2），它在兩平台都一致；要手動餵 JSON-RPC 時，把單行請求用 `'...' | uv run python server.py` 的形式送進去即可。
+
 ## 步驟 4：設定 MCP_WORKSPACE 限制讀檔範圍
 
 `read_text_file` 只能讀 `MCP_WORKSPACE` 指向的目錄底下的檔案。沒設的話預設是目前工作目錄。
@@ -85,7 +116,7 @@ printf '%s\n' \
 echo "hello from workspace" > note.txt
 printf '%s\n' \
 '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"note.txt"}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 ```
 
 真實輸出：
@@ -101,7 +132,7 @@ printf '%s\n' \
 
 跑完上面四步，你應該能勾掉這份清單：
 
-- [ ] `python client_smoke_test.py` 印出三行 JSON，`id` 1/2/3 都有，`isError` 為 `false`。
+- [ ] `uv run python client_smoke_test.py` 印出三行 JSON，`id` 1/2/3 都有，`isError` 為 `false`。
 - [ ] 手動 pipe 時，`tools/call` 的 `now` 回了一個合理時間。
 - [ ] `read_text_file` 能讀到 `MCP_WORKSPACE` 內的檔案。
 - [ ] 沒有把任何 secret 或本機絕對路徑誤 commit 到 GitHub。
