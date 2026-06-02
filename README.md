@@ -102,4 +102,4 @@ MIT
 - **AgentOS** — 跨 CLI 的 agent 治理平台（開發中）
 
 > 想把這個範本落地成你公司的內部系統，或想上一堂從 0 到部署的課？
-> 來信 yazelin@ching-tech.com，或追蹤上面的連結。
+> 來信 yaze.lin.j303@gmail.com，或追蹤上面的連結。
