@@ -24,7 +24,7 @@
 
 - GitHub Pages：https://yazelin.github.io/mcp-server-starter/
 - GitHub repo：https://github.com/yazelin/mcp-server-starter
-- Email：yaze.lin.j303@gmail.com
+- Email：yazelin@ching-tech.com
 
 建議你先照公開教學跑一次，然後帶著具體錯誤訊息或想改造的場景來討論，效率最高。
 
@@ -40,4 +40,4 @@
 - **AgentOS** — 跨 CLI 的 agent 治理平台（開發中）
 
 > 想把這個範本落地成你公司的內部系統，或想上一堂從 0 到部署的課？
-> 來信 yaze.lin.j303@gmail.com，或追蹤上面的連結。
+> 來信 yazelin@ching-tech.com，或追蹤上面的連結。
