@@ -25,55 +25,45 @@
 <li>付費工作坊：手把手解問題、看你的程式與設定、一起改成你的使用場景。</li>
 <li>企業顧問：需求訪談、PoC、部署、權限、安全與維運規劃。</li>
 </ul></section><section><h2>MCP Server 入門模板：快速開始</h2>
+<p>每一步都有：要打的指令 → 真實輸出 → 成功會看到什麼。不需要任何 API key，這個 starter 只用 Python 標準函式庫。</p>
 <h3>前置需求</h3>
 <ul>
 <li>Python 3.10+</li>
-<li>Git</li>
-<li>可以使用終端機</li>
-<li>如果要接真實 AI 或平台 token，請準備對應帳號與 API key。</li>
+<li>Git，會用終端機</li>
 </ul>
-<h3>最短路徑</h3>
-<ol>
-<li>直接執行 smoke test</li>
-<li>看懂 initialize、tools/list、tools/call 三個流程</li>
-<li>設定 MCP_WORKSPACE 限制讀檔範圍</li>
-<li>再接到 Claude Desktop / Cursor 等 client</li>
-</ol>
-<h3>安裝與啟動</h3>
-<pre><code>
-git clone https://github.com/yazelin/mcp-server-starter.git
-
+<h3>步驟 1：取得程式</h3>
+<pre><code>git clone https://github.com/yazelin/mcp-server-starter.git
 cd mcp-server-starter
-
-python client_smoke_test.py
-
-# 或手動啟動 stdio server
-
-python server.py
-
 </code></pre>
-<h3>健康檢查</h3>
-<pre><code>
-python client_smoke_test.py
-
+<h3>步驟 2：跑 smoke test</h3>
+<p>它會用 subprocess 啟動 server.py，依序送 initialize、tools/list、tools/call。</p>
+<pre><code>python client_smoke_test.py
 </code></pre>
-<h3>常用入口</h3>
-<ul>
-<li>stdio JSON-RPC：initialize</li>
-<li>stdio JSON-RPC：tools/list</li>
-<li>stdio JSON-RPC：tools/call</li>
-</ul>
+<p>真實輸出（實際跑出來貼上）：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "mcp-server-starter", "version": "0.1.0"}}}
+{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", ...}, {"name": "now", ...}, {"name": "read_text_file", ...}]}}
+{"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "hello"}], "isError": false}}
+</code></pre>
+<p>成功會看到：三行 JSON，id 1/2/3 都有，id:3 的 echo 回 "hello"、isError 為 false。</p>
+<h3>步驟 3：手動把 JSON-RPC 餵進 server</h3>
+<pre><code>printf '%s\n' \
+'{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"now","arguments":{}}}' \
+| MCP_WORKSPACE="$PWD" python server.py
+</code></pre>
+<p>真實輸出（時間會跟著你目前時間變）：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "2026-06-02T03:28:51+08:00"}], "isError": false}}
+</code></pre>
 <h3>第一次成功的標準</h3>
 <ul>
-<li>服務能啟動</li>
-<li>基本 endpoint 有回應</li>
-<li>範例流程能跑通</li>
-<li>秘密 token 沒有 commit 到 GitHub</li>
+<li>client_smoke_test.py 印出三行 JSON，isError 為 false。</li>
+<li>手動 pipe 時 now 回了一個合理時間。</li>
+<li>read_text_file 能讀到 MCP_WORKSPACE 內的檔案。</li>
+<li>沒有把 secret 或本機絕對路徑誤 commit 到 GitHub。</li>
 </ul></section><section><h2>MCP Server 入門模板：架構說明</h2>
 <h3>核心檔案</h3>
 <ul>
 <li>server.py：單檔 MCP JSON-RPC stdio server</li>
-<li>tools()：宣告 echo / now / read_text_file 三個工具</li>
+<li>tools()：宣告 echo / now / read_text_file / word_count 工具（word_count 是 03 教學示範新增的範例工具）</li>
 <li>call()：依工具名稱執行實際邏輯</li>
 <li>safe()：用 MCP_WORKSPACE 做最基本的檔案安全邊界</li>
 <li>client_smoke_test.py：用 subprocess 模擬 MCP client 呼叫 server</li>
@@ -93,27 +83,35 @@ python client_smoke_test.py
 <li>token 與 secrets 全部放在環境變數。</li>
 <li>每一層保持可以替換：入口、AI provider、資料來源、部署方式。</li>
 <li>範例程式刻意保持小，方便你看懂後改成自己的版本。</li>
-</ul></section><section><h2>MCP Server 入門模板：完整操作流程</h2>
-<h3>步驟</h3>
-<ol>
-<li>先跑 python client_smoke_test.py，確認 server 可以初始化與列出工具。</li>
-<li>閱讀 server.py 的 handle(req)，理解 method 如何對應 result。</li>
-<li>修改 tools() 新增自己的工具 schema。</li>
-<li>在 call() 實作工具邏輯。</li>
-<li>設定 MCP_WORKSPACE，確認 read_text_file 只能讀工作區內檔案。</li>
-<li>再把 server.py 接到 MCP client。</li>
-</ol>
-<h3>建議紀錄</h3>
-<ul>
-<li>你使用的 Python 版本</li>
-<li>啟動指令</li>
-<li>MCP_WORKSPACE 設定到哪個目錄；不要貼出敏感路徑</li>
-<li>client（Claude Desktop 等）的 server 設定內容</li>
-<li>錯誤訊息完整內容</li>
-<li>你預期發生什麼、實際發生什麼</li>
-</ul>
-<h3>下一個里程碑</h3>
-<p>完成最小流程後，不要急著加功能。先找一個真實情境，讓這個 starter 解決一個很小但明確的問題。</p></section><section><h2>MCP Server 入門模板：部署與接入</h2>
+</ul></section><section><h2>MCP Server 入門模板：帶你走一遍</h2>
+<p>這整支 server 就是「讀一行 JSON-RPC 請求 → 回一行 JSON-RPC 回應」。核心三個函式：tools()（宣告工具與 schema）、call()（執行邏輯）、handle()（依 method 分派）。所有輸出皆為實際跑出來貼上。</p>
+<h3>initialize → tools/list → tools/call</h3>
+<p>tools/call 呼叫 now 的真實回應：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "2026-06-02T03:28:51+08:00"}], "isError": false}}
+</code></pre>
+<p>注意回應形狀：result.content 是陣列，每個元素有 type 與 text，isError 表示工具是否成功。</p>
+<h3>安全邊界：親眼看它擋下逃逸</h3>
+<p>read_text_file 只能讀 MCP_WORKSPACE 底下的檔案。safe() 用 .resolve() 把 .. / symlink / 絕對路徑攤平成真實路徑再比對。試著逃出 workspace：</p>
+<pre><code>printf '%s\n' \
+'{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"../sibling-secret.txt"}}}' \
+'{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"/etc/passwd"}}}' \
+| MCP_WORKSPACE="$PWD" python server.py
+</code></pre>
+<p>真實回應（兩個都被擋）：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 5, "result": {"content": [{"type": "text", "text": "Path escapes workspace"}], "isError": true}}
+{"jsonrpc": "2.0", "id": 6, "result": {"content": [{"type": "text", "text": "Path escapes workspace"}], "isError": true}}
+</code></pre>
+<p>這是這個 starter 最重要的一課：把檔案讀取工具交給 AI 之前，邊界要先擋死。它回的是 isError:true 的乾淨工具錯誤，而不是 transport 錯誤。</p>
+<h3>加一個你自己的工具（兩個地方）</h3>
+<p>加工具永遠改兩處：tools() 加 schema、call() 加邏輯。範例 word_count 數一段文字有幾個詞。</p>
+<p>tools() 末尾新增一筆 word_count schema；call() 加一行：</p>
+<pre><code>if name=="word_count": return str(len(args.get("text","").split()))
+</code></pre>
+<p>呼叫的真實回應（"the quick brown fox jumps" 共 5 詞）：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "5"}], "isError": false}}
+</code></pre>
+<h3>動手練習</h3>
+<p>換你加一個 reverse 工具：tools() 仿照 echo 加一筆，call() 加 <code>if name=="reverse": return args.get("text","")[::-1]</code>。呼叫 reverse 傳 "hello" 預期回 "olleh"、isError 為 false。若回 "Unknown tool: reverse"，代表 schema 加了但 call() 忘了加邏輯。</p></section><section><h2>MCP Server 入門模板：部署與接入</h2>
 <p>這是純 stdio 的 MCP server：沒有 HTTP port、沒有 /health endpoint，也不部署到 Render / Railway / Fly.io。MCP client（例如 Claude Desktop）會把它當 subprocess 啟動，透過標準輸入／輸出交換 JSON-RPC。「部署」其實是「讓 client 知道怎麼啟動這支程式」。</p>
 <h3>接入前檢查</h3>
 <ul>
@@ -137,32 +135,32 @@ python client_smoke_test.py
 <h3>想放到雲端？</h3>
 <p>若要讓遠端 client 透過網路連線，需自行加上 HTTP / SSE transport。本 starter 只示範 stdio，<strong>不包含</strong> HTTP/SSE transport。</p>
 <h3>實務提醒</h3>
-<p>接入不是最後一步。正式使用前至少要補：log（寫 stderr，別污染 stdout）、錯誤告警、workspace 權限控管、備份策略，以及對 read_text_file 之類工具的存取範圍稽核。</p></section><section><h2>MCP Server 入門模板：常見問題與踩雷清單</h2>
-<h3>常見坑</h3>
-<ul>
-<li>MCP stdio server 不應該把 debug log 印到 stdout，否則會污染 JSON-RPC；debug 請印 stderr。</li>
-<li>工具 schema 要明確，否則 agent 不知道該傳什麼參數。</li>
-<li>讀檔、寫檔、呼叫內部 API 都要設安全邊界。</li>
-<li>不要一開始就接太多工具，先用 echo / now / read_text_file 確認 client-server 流程。</li>
-<li>不同 client 支援的 MCP 版本與設定檔格式可能不同。</li>
-</ul>
-<h3>Debug 順序</h3>
+<p>接入不是最後一步。正式使用前至少要補：log（寫 stderr，別污染 stdout）、錯誤告警、workspace 權限控管、備份策略，以及對 read_text_file 之類工具的存取範圍稽核。</p></section><section><h2>MCP Server 入門模板：常見踩雷清單</h2>
+<h3>1. print 到 stdout 污染 JSON-RPC</h3>
+<p>stdio MCP server 的 stdout 只能放 JSON-RPC。只要 print 一個 debug 訊息，client 解析第一行就炸：</p>
+<pre><code>json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)</code></pre>
+<p>修法：debug / log 一律寫 stderr，例如 <code>print("...", file=sys.stderr)</code>。</p>
+<h3>2. method 名稱寫錯（listTools 不是 tools/list）</h3>
+<p>method 是固定字串且有斜線。送 listTools 的真實回應：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 7, "error": {"code": -32601, "message": "Method not found: listTools"}}</code></pre>
+<p>-32601 是 JSON-RPC 標準的「Method not found」。用 tools/list 而不是 listTools。</p>
+<h3>3. 忘了設 MCP_WORKSPACE</h3>
+<p>沒設時預設是 server 啟動當下的工作目錄，常常不是你以為的地方，導致「該讀到的讀不到」。請在 client 設定檔 env 明確指定絕對路徑。</p>
+<h3>4. 加了 schema 卻忘了在 call() 加邏輯</h3>
+<p>tools/list 看得到工具，但呼叫落到 call() 結尾：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "Unknown tool: reverse"}], "isError": true}}</code></pre>
+<h3>5. 工具缺必填參數</h3>
+<p>呼叫 read_text_file 沒給 path 的真實回應（好的錯誤：isError:true 加人看得懂的訊息）：</p>
+<pre><code>{"jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "Missing required argument: path"}], "isError": true}}</code></pre>
+<h3>Debug 順序（針對 stdio MCP）</h3>
 <ol>
-<li>先確認服務有沒有啟動。</li>
-<li>再確認 endpoint / webhook URL 是否正確。</li>
-<li>檢查環境變數是否有載入。</li>
-<li>用 echo / fake provider 排除 AI 服務問題。</li>
-<li>查看完整錯誤訊息，不要只看最後一行。</li>
-<li>把問題縮到最小可重現案例。</li>
-</ol>
-<h3>問別人前準備</h3>
-<ul>
-<li>repo / branch</li>
-<li>啟動指令</li>
-<li>完整錯誤訊息</li>
-<li>你已經檢查過哪些設定</li>
-<li>secret 請遮掉，不要直接貼 token</li>
-</ul></section><section><h2>MCP Server 入門模板：改成你的使用場景</h2>
+<li>先用 client_smoke_test.py 確認協定正常。</li>
+<li>手動 pipe 單一 method 進 server.py，縮小出錯的步驟。</li>
+<li>確認 stdout 沒被 print 污染（debug 全走 stderr）。</li>
+<li>確認 method 名稱、工具 name 逐字正確。</li>
+<li>確認 MCP_WORKSPACE 指向正確絕對路徑。</li>
+<li>看完整錯誤與 isError 欄位，別只看最後一行。</li>
+</ol></section><section><h2>MCP Server 入門模板：改成你的使用場景</h2>
 <h3>可延伸方向</h3>
 <ul>
 <li>把內部 REST API 包成工具：例如查訂單、查庫存、查機台狀態。</li>
@@ -188,7 +186,7 @@ python client_smoke_test.py
 <p>如果你需要的不是「看文件」，而是希望有人陪你把它改成自己的情境，可以考慮工作坊或顧問協助。</p>
 <h3>適合找我協助的情況</h3>
 <ul>
-<li>你照 README 做但卡在 token、webhook、部署或環境問題。</li>
+<li>你照 README 做但卡在 stdio 接入、MCP_WORKSPACE 邊界或 client 設定問題。</li>
 <li>你想把範例改成公司內部流程。</li>
 <li>你需要幫客戶或老闆做一個能展示的 PoC。</li>
 <li>你想知道這個 starter 上線前還缺哪些安全與維運設計。</li>
@@ -208,4 +206,15 @@ python client_smoke_test.py
 <li>GitHub repo：https://github.com/yazelin/mcp-server-starter</li>
 <li>Email：yaze.lin.j303@gmail.com</li>
 </ul>
-<p>建議你先照公開教學跑一次，然後帶著具體錯誤訊息或想改造的場景來討論，效率最高。</p></section></main><section id="contact"><h2>需要手把手協助？</h2><p>公開文件適合照著跑；工作坊與顧問適合處理你的真實環境、debug、部署、權限與客製化改造。</p><p><a class="btn primary" href="https://yazelin.github.io/mcp-server-starter/#waitlist">留下 email / 收到開課通知</a></p></section><p class="footer">© Yaze Lin. 教學內容公開於 GitHub，歡迎 fork、star、照著做。</p></div></body></html>
+<p>建議你先照公開教學跑一次，然後帶著具體錯誤訊息或想改造的場景來討論，效率最高。</p></section></main><section id="resources"><h2>關於作者 / 延伸資源</h2>
+<p>這個範本由 <strong>林亞澤（Yaze Lin）</strong> 維護 — 出身機電自動化系統整合，現在把同一套工程方法用在 AI 產品上。任職於 <strong>擎添工業 ChingTech</strong>（1984 年成立的機電自動化公司：PLC 程式、機械手臂、AGV 無人搬運、半導體封測／PCB／面板／光學產線整合）。</p>
+<p class="muted">技術筆記與更多範例：<a href="https://yazelin.github.io">yazelin.github.io</a> · GitHub <a href="https://github.com/yazelin">@yazelin</a></p>
+<h3>從範本到正式產品</h3>
+<p>把工具安全交給 AI 這條線，我們做成了 AgentOS（agent 治理）與 Mori Desktop（個人 AI 管家）。</p>
+<ul>
+<li><strong>CTOS</strong> — 企業 AI 工作平台：macOS 風格 Web 桌面、知識庫 RAG 檢索、產業專屬 Agent、LINE Bot 整合，資料留在台灣。<a href="https://ching-tech.com">ching-tech.com</a> · <a href="https://ching-tech.github.io">品牌站</a></li>
+<li><strong>CTOS-Lite / CT JINN</strong> — 把公司裝進 LINE 的個人版 AI 助理，加 LINE 即可試用：<a href="https://line.me/R/ti/p/@285fjkky">@285fjkky</a></li>
+<li><strong>Mori Desktop</strong> — 個人 AI 管家桌面應用（Tauri 2 + Rust + React）：<a href="https://github.com/yazelin/mori-desktop">github.com/yazelin/mori-desktop</a></li>
+<li><strong>AgentOS</strong> — 跨 CLI 的 agent 治理平台（開發中）</li>
+</ul>
+<p class="muted">想把這個範本落地成你公司的內部系統，或想上一堂從 0 到部署的課？來信 yaze.lin.j303@gmail.com，或追蹤上面的連結。</p></section><section id="contact"><h2>需要手把手協助？</h2><p>公開文件適合照著跑；工作坊與顧問適合處理你的真實環境、debug、部署、權限與客製化改造。</p><p><a class="btn primary" href="https://yazelin.github.io/mcp-server-starter/#waitlist">留下 email / 收到開課通知</a></p></section><p class="footer">© Yaze Lin. 教學內容公開於 GitHub，歡迎 fork、star、照著做。</p></div></body></html>

@@ -6,7 +6,7 @@
 
 ## 適合找我協助的情況
 
-- 你照 README 做但卡在 token、webhook、部署或環境問題。
+- 你照 README 做但卡在 stdio 接入、`MCP_WORKSPACE` 邊界或 client 設定問題。
 - 你想把範例改成公司內部流程。
 - 你需要幫客戶或老闆做一個能展示的 PoC。
 - 你想知道這個 starter 上線前還缺哪些安全與維運設計。
@@ -40,4 +40,4 @@
 - **AgentOS** — 跨 CLI 的 agent 治理平台（開發中）
 
 > 想把這個範本落地成你公司的內部系統，或想上一堂從 0 到部署的課？
-> 來信 yazelin@ching-tech.com，或追蹤上面的連結。
+> 來信 yaze.lin.j303@gmail.com，或追蹤上面的連結。

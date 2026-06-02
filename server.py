@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 WORKSPACE=Path(os.getenv("MCP_WORKSPACE",os.getcwd())).resolve()
 def send(o): sys.stdout.write(json.dumps(o,ensure_ascii=False)+"\n"); sys.stdout.flush()
-def tools(): return [{"name":"echo","description":"Echo text","inputSchema":{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}},{"name":"now","description":"Current local time","inputSchema":{"type":"object","properties":{}}},{"name":"read_text_file","description":"Read UTF-8 text under MCP_WORKSPACE","inputSchema":{"type":"object","properties":{"path":{"type":"string"}},"required":["path"]}}]
+def tools(): return [{"name":"echo","description":"Echo text","inputSchema":{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}},{"name":"now","description":"Current local time","inputSchema":{"type":"object","properties":{}}},{"name":"read_text_file","description":"Read UTF-8 text under MCP_WORKSPACE","inputSchema":{"type":"object","properties":{"path":{"type":"string"}},"required":["path"]}},{"name":"word_count","description":"Count whitespace-separated words in text","inputSchema":{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}}]
 def safe(rel):
     p=(WORKSPACE/rel).resolve()
     if WORKSPACE!=p and WORKSPACE not in p.parents:
@@ -14,6 +14,7 @@ def call(name,args):
     args=args or {}
     if name=="echo": return args.get("text","")
     if name=="now": return datetime.now().astimezone().isoformat(timespec="seconds")
+    if name=="word_count": return str(len(args.get("text","").split()))
     if name=="read_text_file":
         if "path" not in args: raise ValueError("Missing required argument: path")
         return safe(args["path"]).read_text(encoding="utf-8")[:20000]
