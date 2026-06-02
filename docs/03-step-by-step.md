@@ -4,6 +4,8 @@
 
 讀之前先記住一件事：**這整支 server 就是「讀一行 JSON-RPC 請求 → 回一行 JSON-RPC 回應」**。沒有 HTTP、沒有 framework。看懂這個迴圈，就看懂了 MCP server。
 
+> 開始前請先在 repo 根目錄跑過一次 `uv sync`（uv 安裝方式見 `01-quickstart.md`）。本文所有指令都用 `uv run python server.py`，它會在 uv 建好的 `.venv` 裡執行；`uv sync` / `uv run` 在 Ubuntu 與 Windows 完全相同。下面的 `printf ... | ...` 多行 pipe 是 bash 寫法（Ubuntu / macOS / WSL）；Windows 原生 PowerShell 把單行請求用 `'...' | uv run python server.py` 送進去即可。
+
 `server.py` 的核心只有三個函式：
 
 - `tools()`：宣告有哪些工具、每個工具的 input schema（給 AI 看的「使用說明」）。
@@ -24,7 +26,7 @@ client 連上來的第一件事是 `initialize`，宣告協定版本、問 serve
 
 ```bash
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 ```
 
 真實回應：
@@ -90,7 +92,7 @@ echo "hello from workspace" > note.txt
 echo "line two" >> note.txt
 printf '%s\n' \
 '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"note.txt"}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 ```
 
 真實回應：
@@ -105,7 +107,7 @@ printf '%s\n' \
 printf '%s\n' \
 '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"../sibling-secret.txt"}}}' \
 '{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"/etc/passwd"}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 ```
 
 真實回應（兩個都被擋）：
@@ -159,7 +161,7 @@ printf '%s\n' \
 printf '%s\n' \
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' \
 '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"word_count","arguments":{"text":"the quick brown fox jumps"}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 ```
 
 真實回應（節錄；`tools/list` 現在多一筆 `word_count`，呼叫回 `"5"`）：
@@ -185,7 +187,7 @@ printf '%s\n' \
 
 ```bash
 printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"reverse","arguments":{"text":"hello"}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 ```
 
 預期你會看到 `"text": "olleh"`、`"isError": false`。如果回的是 `"Unknown tool: reverse"`，代表你 schema 加了但 `call()` 忘了加邏輯（或名字拼錯）——這正是下一份 `05-common-pitfalls.md` 會講的常見錯誤。

@@ -4,21 +4,23 @@
 
 ## 接入前檢查
 
-- 本機流程已經跑通（`python client_smoke_test.py` 會印出三段 JSON-RPC 回應）。
+- 已跑過 `uv sync`，且本機流程跑通（`uv run python client_smoke_test.py` 會印出三段 JSON-RPC 回應）。
 - 設定好 `MCP_WORKSPACE`，確認 `read_text_file` 只能讀到你預期的目錄。
 - `server.py`（或安裝後的 `mcp-server-starter` 指令）路徑是 client 能存取的絕對路徑。
 - 執行檔有讀取權限；workspace 目錄權限正確。
 
 ## 在 Claude Desktop 設定啟動方式
 
-編輯 Claude Desktop 的 MCP 設定檔（`claude_desktop_config.json`），加入一個 server 條目。client 會用 `command` + `args` 啟動 subprocess，並把 `env` 傳進去：
+編輯 Claude Desktop 的 MCP 設定檔（`claude_desktop_config.json`），加入一個 server 條目。client 會用 `command` + `args` 啟動 subprocess，並把 `env` 傳進去。
+
+本教學用 uv 管理環境，所以最穩的做法是讓 client 透過 `uv run` 啟動：`command` 設成 `uv`，用 `--project` 指向 repo 絕對路徑（這樣不管 client 從哪個工作目錄啟動，uv 都找得到正確的 `.venv` 與 console script），再用 `--project` 後面的 `mcp-server-starter` 跑安裝好的 console script：
 
 ```json
 {
   "mcpServers": {
     "mcp-server-starter": {
-      "command": "python",
-      "args": ["/absolute/path/to/mcp-server-starter/server.py"],
+      "command": "uv",
+      "args": ["run", "--project", "/absolute/path/to/mcp-server-starter", "mcp-server-starter"],
       "env": {
         "MCP_WORKSPACE": "/absolute/path/to/your/workspace"
       }
@@ -27,28 +29,16 @@
 }
 ```
 
-如果你已經 `pip install -e .` 安裝了 console script，可以改用安裝後的指令：
+上面這個形式我實際用 `uv run --project ... mcp-server-starter` 從別的工作目錄餵 `initialize` 驗證過，協定正常、`MCP_WORKSPACE` 仍由 `env` 獨立決定。如果 `uv` 不在 client 的 `PATH` 上，把 `command` 換成 uv 的絕對路徑（Ubuntu / macOS 通常是 `~/.local/bin/uv`，Windows 通常是 `%USERPROFILE%\.local\bin\uv.exe`）。
 
-```json
-{
-  "mcpServers": {
-    "mcp-server-starter": {
-      "command": "/absolute/path/to/.venv/bin/mcp-server-starter",
-      "args": [],
-      "env": {
-        "MCP_WORKSPACE": "/absolute/path/to/your/workspace"
-      }
-    }
-  }
-}
-```
+> 也可以不經 console script，直接 `args: ["run", "--project", "/absolute/path/to/mcp-server-starter", "python", "/absolute/path/to/mcp-server-starter/server.py"]`，效果相同（同樣實測過）。注意 `python` 後面要給 `server.py` 的絕對路徑，因為 client 啟動時的工作目錄不一定是 repo。Windows 上 `command` / `args` 寫法一致，只是路徑改用反斜線。
 
 設定後重啟 Claude Desktop，server 會在需要時被自動啟動，用完即關，不需要常駐。
 
 ## 打包與權限筆記
 
-- 路徑一律用絕對路徑；client 的工作目錄不一定是你的 repo。
-- 若用 venv，`command` 要指向該 venv 的 Python 或 console script，否則可能找不到正確的直譯器。
+- 路徑一律用絕對路徑；client 的工作目錄不一定是你的 repo。用 `uv run --project <絕對路徑>` 就是為了在這種情況下仍能定位到正確環境。
+- 部署機上要先 `uv sync` 過一次（建立 `.venv` 並裝好 console script），client 之後才能用 `uv run` 啟動。
 - `MCP_WORKSPACE` 請指向「允許被讀取」的目錄；`safe()` 會擋掉任何逃出此目錄的路徑（含 `..`、絕對路徑、symlink）。
 - stdout 只能輸出 JSON-RPC。任何 debug 訊息請寫到 stderr，否則會破壞 framing。
 

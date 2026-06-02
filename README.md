@@ -36,31 +36,35 @@ Developers who want to connect Claude/Cursor/agents to their own tools.
 
 ## Quick start
 
-This starter is dependency-light: it uses only the Python standard library, so there is nothing to `pip install`. You can run it directly.
+本教學以 [uv](https://docs.astral.sh/uv/) 為主。`uv sync` 會依 `pyproject.toml` + `uv.lock` 自動建立 `.venv` 並把專案裝好（毋須手動 venv / activate），`uv run` 直接在那個環境裡執行。**以下 `uv sync` / `uv run` 在 Ubuntu 與 Windows 完全相同。**
+
+先安裝 uv（一次就好）：
+
+- Ubuntu / macOS：`curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Windows（PowerShell）：`powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+
+裝完重開終端機，`uv --version` 印得出版本就 OK。
 
 ```bash
 git clone https://github.com/yazelin/mcp-server-starter.git
 cd mcp-server-starter
+uv sync
 
 # Run the smoke test (spawns server.py over stdio and exercises 3 JSON-RPC calls)
-python client_smoke_test.py
+uv run python client_smoke_test.py
 
 # Or start the stdio server directly and pipe JSON-RPC into it
-MCP_WORKSPACE="$PWD" python server.py
+MCP_WORKSPACE="$PWD" uv run python server.py
+
+# Or run the installed console script (same stdio JSON-RPC server)
+MCP_WORKSPACE="$PWD" uv run mcp-server-starter
 ```
 
 Configuration is a single environment variable, `MCP_WORKSPACE`, which bounds
 what `read_text_file` is allowed to read. If unset, it defaults to the current
 working directory. There is no `.env` file and no third-party dependency.
 
-Optional: if you prefer an installed console command, the project is also
-pip-installable (PEP 621 + hatchling):
-
-```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e .
-MCP_WORKSPACE="$PWD" mcp-server-starter   # same stdio JSON-RPC server
-```
+這個 starter 只用 Python 標準函式庫，`[project].dependencies` 是空的，所以 `uv sync` 只會 build 並安裝本專案這一個 package。沒裝 uv 的話 `pip install .` 也能裝，但本教學以 uv 為主。
 
 ## Learn / get help
 

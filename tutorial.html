@@ -30,14 +30,28 @@
 <ul>
 <li>Python 3.10+</li>
 <li>Git，會用終端機</li>
+<li><a href="https://docs.astral.sh/uv/">uv</a>（本教學的環境管理工具）</li>
 </ul>
+<h3>安裝 uv（一次就好）</h3>
+<p>Ubuntu / macOS：<code>curl -LsSf https://astral.sh/uv/install.sh | sh</code><br>Windows（PowerShell）：<code>powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"</code><br>裝完重開終端機，<code>uv --version</code> 印得出版本就 OK。<code>uv sync</code> 會依 pyproject.toml + uv.lock 自動建立 .venv 並裝好套件，<code>uv run</code> 直接在那個環境執行。<strong>以下 uv sync / uv run 在 Ubuntu 與 Windows 完全相同</strong>，平台差異只在安裝 uv 這一步。</p>
 <h3>步驟 1：取得程式</h3>
 <pre><code>git clone https://github.com/yazelin/mcp-server-starter.git
 cd mcp-server-starter
+uv sync
+</code></pre>
+<p>uv sync 的真實輸出（會建立 .venv 並 build 本專案）：</p>
+<pre><code>Using CPython 3.11.13
+Creating virtual environment at: .venv
+Resolved 1 package in 1ms
+   Building mcp-server-starter @ file:///path/to/mcp-server-starter
+      Built mcp-server-starter @ file:///path/to/mcp-server-starter
+Prepared 1 package in 942ms
+Installed 1 package in 0.76ms
+ + mcp-server-starter==0.1.0 (from file:///path/to/mcp-server-starter)
 </code></pre>
 <h3>步驟 2：跑 smoke test</h3>
 <p>它會用 subprocess 啟動 server.py，依序送 initialize、tools/list、tools/call。</p>
-<pre><code>python client_smoke_test.py
+<pre><code>uv run python client_smoke_test.py
 </code></pre>
 <p>真實輸出（實際跑出來貼上）：</p>
 <pre><code>{"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "mcp-server-starter", "version": "0.1.0"}}}
@@ -48,14 +62,14 @@ cd mcp-server-starter
 <h3>步驟 3：手動把 JSON-RPC 餵進 server</h3>
 <pre><code>printf '%s\n' \
 '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"now","arguments":{}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 </code></pre>
 <p>真實輸出（時間會跟著你目前時間變）：</p>
 <pre><code>{"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "2026-06-02T03:28:51+08:00"}], "isError": false}}
 </code></pre>
 <h3>第一次成功的標準</h3>
 <ul>
-<li>client_smoke_test.py 印出三行 JSON，isError 為 false。</li>
+<li>uv run python client_smoke_test.py 印出三行 JSON，isError 為 false。</li>
 <li>手動 pipe 時 now 回了一個合理時間。</li>
 <li>read_text_file 能讀到 MCP_WORKSPACE 內的檔案。</li>
 <li>沒有把 secret 或本機絕對路徑誤 commit 到 GitHub。</li>
@@ -95,7 +109,7 @@ cd mcp-server-starter
 <pre><code>printf '%s\n' \
 '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"../sibling-secret.txt"}}}' \
 '{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"read_text_file","arguments":{"path":"/etc/passwd"}}}' \
-| MCP_WORKSPACE="$PWD" python server.py
+| MCP_WORKSPACE="$PWD" uv run python server.py
 </code></pre>
 <p>真實回應（兩個都被擋）：</p>
 <pre><code>{"jsonrpc": "2.0", "id": 5, "result": {"content": [{"type": "text", "text": "Path escapes workspace"}], "isError": true}}
@@ -115,23 +129,24 @@ cd mcp-server-starter
 <p>這是純 stdio 的 MCP server：沒有 HTTP port、沒有 /health endpoint，也不部署到 Render / Railway / Fly.io。MCP client（例如 Claude Desktop）會把它當 subprocess 啟動，透過標準輸入／輸出交換 JSON-RPC。「部署」其實是「讓 client 知道怎麼啟動這支程式」。</p>
 <h3>接入前檢查</h3>
 <ul>
-<li>本機流程已經跑通（python client_smoke_test.py 印出三段 JSON-RPC 回應）。</li>
+<li>已跑過 uv sync，本機流程跑通（uv run python client_smoke_test.py 印出三段 JSON-RPC 回應）。</li>
 <li>設好 MCP_WORKSPACE，read_text_file 只能讀到預期目錄。</li>
 <li>server.py（或安裝後的 mcp-server-starter 指令）是 client 能存取的絕對路徑。</li>
 <li>stdout 只輸出 JSON-RPC，debug 訊息寫 stderr，否則破壞 framing。</li>
 </ul>
 <h3>在 Claude Desktop 設定啟動方式</h3>
+<p>本教學用 uv 管理環境，讓 client 透過 <code>uv run</code> 啟動最穩：<code>command</code> 設 <code>uv</code>，用 <code>--project</code> 指向 repo 絕對路徑，這樣不論 client 從哪個工作目錄啟動都找得到正確的 .venv 與 console script。此形式已實測過協定正常、MCP_WORKSPACE 仍由 env 獨立決定：</p>
 <pre><code>{
   "mcpServers": {
     "mcp-server-starter": {
-      "command": "python",
-      "args": ["/absolute/path/to/mcp-server-starter/server.py"],
+      "command": "uv",
+      "args": ["run", "--project", "/absolute/path/to/mcp-server-starter", "mcp-server-starter"],
       "env": { "MCP_WORKSPACE": "/absolute/path/to/your/workspace" }
     }
   }
 }
 </code></pre>
-<p>設定後重啟 client，server 會在需要時被自動啟動，用完即關，不需常駐。</p>
+<p>若 uv 不在 client 的 PATH 上，把 command 換成 uv 絕對路徑（Ubuntu/macOS 通常是 ~/.local/bin/uv，Windows 通常是 %USERPROFILE%\.local\bin\uv.exe）。設定後重啟 client，server 會在需要時被自動啟動，用完即關，不需常駐。</p>
 <h3>想放到雲端？</h3>
 <p>若要讓遠端 client 透過網路連線，需自行加上 HTTP / SSE transport。本 starter 只示範 stdio，<strong>不包含</strong> HTTP/SSE transport。</p>
 <h3>實務提醒</h3>
@@ -152,10 +167,12 @@ cd mcp-server-starter
 <h3>5. 工具缺必填參數</h3>
 <p>呼叫 read_text_file 沒給 path 的真實回應（好的錯誤：isError:true 加人看得懂的訊息）：</p>
 <pre><code>{"jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "Missing required argument: path"}], "isError": true}}</code></pre>
+<h3>6. 沒裝 uv，或忘了先 uv sync</h3>
+<p>本教學用 uv 管理環境。打 <code>uv ...</code> 出現 command not found 代表沒裝 uv（依前置需求安裝後重開終端機，<code>uv --version</code> 印得出版本再繼續）。裝了卻直接 <code>uv run mcp-server-starter</code> 找不到 console script，通常是忘了先在 repo 根目錄跑一次 <code>uv sync</code>（它會建立 .venv 並安裝本專案）。uv sync / uv run 兩平台完全相同，平台差異只在安裝 uv 這一步。</p>
 <h3>Debug 順序（針對 stdio MCP）</h3>
 <ol>
-<li>先用 client_smoke_test.py 確認協定正常。</li>
-<li>手動 pipe 單一 method 進 server.py，縮小出錯的步驟。</li>
+<li>先用 uv run python client_smoke_test.py 確認協定正常。</li>
+<li>手動 pipe 單一 method 進 uv run python server.py，縮小出錯的步驟。</li>
 <li>確認 stdout 沒被 print 污染（debug 全走 stderr）。</li>
 <li>確認 method 名稱、工具 name 逐字正確。</li>
 <li>確認 MCP_WORKSPACE 指向正確絕對路徑。</li>

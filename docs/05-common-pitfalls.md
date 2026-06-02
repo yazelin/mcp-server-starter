@@ -73,10 +73,19 @@ MCP 的 method 名稱是固定字串，且**有斜線**：`tools/list`、`tools/
 
 這是「好的」錯誤：`isError: true` 加一句人看得懂的訊息。你自己寫新工具時，也建議先驗證必填參數再動手做事。
 
+## 6. 沒裝 uv，或忘了先 `uv sync`
+
+本教學用 uv 管理環境。兩個最常見的卡點：
+
+- **沒裝 uv**：打 `uv ...` 直接 `command not found: uv`（Windows 是 `'uv' 不是內部或外部命令`）。先依 `01-quickstart.md` 安裝 uv（Ubuntu/macOS 用 install.sh、Windows 用 install.ps1），裝完**重開終端機**讓 PATH 生效，`uv --version` 印得出版本再繼續。
+- **裝了 uv 但忘了先 `uv sync`**：在沒有 `.venv` 的情況下直接 `uv run mcp-server-starter`，會找不到安裝好的 console script。先在 repo 根目錄跑一次 `uv sync`（它會建立 `.venv` 並 build / 安裝本專案），之後 `uv run python server.py`、`uv run mcp-server-starter`、`uv run python client_smoke_test.py` 才會在對的環境裡執行。
+
+`uv sync` / `uv run` 在 Ubuntu 與 Windows 完全相同，平台差異只在「怎麼安裝 uv」這一步。
+
 ## Debug 順序（針對 stdio MCP）
 
-1. 先用 `python client_smoke_test.py` 確認 server 本身協定正常。
-2. 再手動 pipe 單一 method 進 `python server.py`，縮小到哪一步出錯。
+1. 先用 `uv run python client_smoke_test.py` 確認 server 本身協定正常。
+2. 再手動 pipe 單一 method 進 `uv run python server.py`，縮小到哪一步出錯。
 3. 確認 stdout 沒有被 `print` 污染（debug 全走 stderr）。
 4. 確認 method 名稱、工具 `name` 逐字正確。
 5. 確認 `MCP_WORKSPACE` 指向正確的絕對路徑。
