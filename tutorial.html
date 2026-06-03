@@ -227,7 +227,81 @@ OK: all 6 checks passed
 <li>GitHub repo：https://github.com/yazelin/mcp-server-starter</li>
 <li>Email：yazelin@ching-tech.com</li>
 </ul>
-<p>建議你先照公開教學跑一次，然後帶著具體錯誤訊息或想改造的場景來討論，效率最高。</p></section></main><section id="resources"><h2>關於作者 / 延伸資源</h2>
+<p>建議你先照公開教學跑一次，然後帶著具體錯誤訊息或想改造的場景來討論，效率最高。</p></section><section><h2>Part 2：用 FastMCP 重寫(對照組)</h2>
+<p>前半段（<code>01</code>/<code>03</code>）你已經從零手刻了一個 stdio JSON-RPC server，看懂了協定的每一段。這一段是課程後半：同樣的功能，改用 FastMCP 寫，讓你親眼看到「同樣的事，可以多簡單」。</p>
+<p>這是獨立的一課——你可以先只跑前半段，真的體會過手刻的繁瑣，再回來看這段，對照感最強。</p>
+<h3>先講結論：差在哪</h3>
+<table style="width:100%;border-collapse:collapse;color:#cbd5e1;font-size:15px">
+<thead><tr style="border-bottom:1px solid rgba(255,255,255,.2)">
+<th style="text-align:left;padding:8px 12px">面向</th>
+<th style="text-align:left;padding:8px 12px">完全手刻（server.py）</th>
+<th style="text-align:left;padding:8px 12px">FastMCP（server_fastmcp.py）</th>
+</tr></thead>
+<tbody>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">工具 schema</td><td style="padding:8px 12px">自己手寫 <code>inputSchema</code> JSON</td><td style="padding:8px 12px">從 type hints 自動生成</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">回傳包裝</td><td style="padding:8px 12px">自己包成 <code>content</code> 陣列</td><td style="padding:8px 12px">框架自動包</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">error 信封</td><td style="padding:8px 12px">自己組 <code>isError</code> / JSON-RPC error code</td><td style="padding:8px 12px">框架處理（tool 拋例外即 <code>isError:true</code>）</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">transport / handshake</td><td style="padding:8px 12px">自己寫 stdin loop、<code>initialize</code> 回應</td><td style="padding:8px 12px"><code>mcp.run()</code> 一行</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">三原語</td><td style="padding:8px 12px">只有 tool</td><td style="padding:8px 12px">tool + resource + prompt 都只要一個 decorator</td></tr>
+<tr><td style="padding:8px 12px"><strong>安全邊界</strong></td><td style="padding:8px 12px">自己寫 <code>safe()</code></td><td style="padding:8px 12px"><strong>一樣要自己寫 <code>safe()</code></strong></td></tr>
+</tbody>
+</table>
+<p>兩條核心訊息：</p>
+<ul>
+<li>FastMCP 幫你做掉協定樣板：schema、content 包裝、error 信封、transport/handshake 全包了。對照 <code>server.py</code> 那段密密麻麻的 <code>handle()</code>，FastMCP 版只是一串 <code>@mcp.tool</code>。</li>
+<li>FastMCP 不幫你做你的安全邏輯：<code>read_text_file</code> 的路徑沙箱還是你自己寫的同一個 <code>safe()</code>。記住這句：框架省掉協定樣板，但安全邏輯永遠是你自己的責任。</li>
+</ul>
+<h3>步驟 1：裝 FastMCP</h3>
+<p>前半段 <code>uv sync</code> 不裝任何第三方套件。FastMCP 版需要多裝一個套件，所以放在 optional extra：</p>
+<pre><code>uv sync --extra fastmcp
+</code></pre>
+<p>成功的話 <code>uv run python -c "import fastmcp; print(fastmcp.__version__)"</code> 會印出 <code>3.4.x</code>。對照點：多一個相依、多一步安裝，但下面你會看到程式碼少一大截。</p>
+<h3>步驟 2：看 server_fastmcp.py</h3>
+<p>完整檔案在 repo 根目錄。重點是：每個工具就是一個帶 type hints 的函式 + 一個 decorator，schema 由 FastMCP 從型別自動生：</p>
+<pre><code>from fastmcp import FastMCP
+mcp = FastMCP("mcp-server-starter-fastmcp")
+
+@mcp.tool
+def echo(text: str) -> str:
+    """Echo text"""
+    return text
+
+@mcp.tool
+def word_count(text: str) -> str:
+    """Count whitespace-separated words in text"""
+    return str(len(text.split()))
+</code></pre>
+<p>對照手刻版：你不用寫 <code>inputSchema</code>（型別就是 schema）、不用把回傳包成 <code>content</code> 陣列、不用組 error。<code>read_text_file</code> 唯一「自己寫」的部分，是那個跟 <code>server.py</code> 一模一樣的 <code>safe()</code> 邊界——這正是重點。</p>
+<h3>步驟 3：跑同一份 smoke test</h3>
+<p>關鍵設計：<code>client_smoke_test.py</code> 用 <code>MCP_SMOKE_TARGET</code> 切換目標，同一份測試、同一組斷言，對兩種實作都過——證明它們行為完全相同。</p>
+<pre><code>MCP_SMOKE_TARGET=server_fastmcp.py uv run python client_smoke_test.py
+</code></pre>
+<p>收尾會看到 <code>OK: all 6 checks passed (target=server_fastmcp.py)</code>。把 <code>MCP_SMOKE_TARGET</code> 拿掉（預設 <code>server.py</code>）再跑一次，你會看到同樣 6 項全過——兩種寫法、同一份測試。</p>
+<h3>步驟 4：第三原語——resource 與 prompt</h3>
+<p>手刻版只有 tool。FastMCP 讓另外兩個原語也只要一個 decorator。先分清楚三者「誰主導」：</p>
+<ul>
+<li><strong>tool</strong>：模型自己決定何時呼叫（echo / now / read_text_file / word_count）。</li>
+<li><strong>resource</strong>：應用程式/使用者挑來當 context 的唯讀資料，用 URI 定址。</li>
+<li><strong>prompt</strong>：使用者主動觸發的可重用提示範本（在 client 端常是 slash 指令）。</li>
+</ul>
+<p>resource 範例（跟 <code>read_text_file</code> 這個 tool 成對照——同一個 workspace，一個模型主動讀、一個應用提供）：</p>
+<pre><code>@mcp.resource("workspace://files")
+def workspace_files() -> str:
+    """List the files under MCP_WORKSPACE (read-only context)."""
+    return "\n".join(sorted(p.name for p in WORKSPACE.iterdir()))
+</code></pre>
+<p>prompt 範例——<strong>這個放在這裡是「認識用」</strong>：在這種極簡工具 server 裡 prompt 沒有非做不可的好理由，放一個最小範例只是讓你知道有這個原語、它長什麼樣：</p>
+<pre><code>@mcp.prompt
+def explain_word_count(text: str) -> str:
+    """Awareness-only example of the third MCP primitive."""
+    return f"Count the words in this text and explain your reasoning step by step:\n\n{text}"
+</code></pre>
+<h3>何時選哪一種</h3>
+<ul>
+<li><strong>手刻</strong>（前半段）：學習、理解協定、極簡或受限環境（不想帶第三方相依）。</li>
+<li><strong>FastMCP</strong>（這一段）：實際做事、工具一多、要 resource/prompt、長期維護——少寫一堆樣板，專注在你的邏輯與安全邊界。</li>
+</ul>
+<p>兩者不是取代關係：先手刻看懂底層，再用 FastMCP 拿生產力，你會更知道框架替你做了什麼、又沒替你做什麼。</p></section></main><section id="resources"><h2>關於作者 / 延伸資源</h2>
 <p>這個範本由 <strong>林亞澤（Yaze Lin）</strong> 維護 — 出身機電自動化系統整合，現在把同一套工程方法用在 AI 產品上。任職於 <strong>擎添工業 ChingTech</strong>（1984 年成立的機電自動化公司：PLC 程式、機械手臂、AGV 無人搬運、半導體封測／PCB／面板／光學產線整合）。</p>
 <p class="muted">技術筆記與更多範例：<a href="https://yazelin.github.io">yazelin.github.io</a> · GitHub <a href="https://github.com/yazelin">@yazelin</a></p>
 <h3>從範本到正式產品</h3>
