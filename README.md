@@ -73,7 +73,7 @@ MCP_WORKSPACE="$PWD" uv run mcp-server-starter-fastmcp                  # 啟動
 
 Configuration is a single environment variable, `MCP_WORKSPACE`, which bounds
 what `read_text_file` is allowed to read. If unset, it defaults to the current
-working directory. There is no `.env` file and no third-party dependency.
+working directory. There is no `.env` file and no *required* third-party dependency — the front half is pure stdlib; FastMCP is an optional extra (`--extra fastmcp`).
 
 這個 starter 只用 Python 標準函式庫，`[project].dependencies` 是空的，所以 `uv sync` 只會 build 並安裝本專案這一個 package。沒裝 uv 的話 `pip install .` 也能裝，但本教學以 uv 為主。
 
