@@ -52,6 +52,26 @@ def read_text_file(path: str) -> str:
     return safe(path).read_text(encoding="utf-8")[:20000]
 
 
+@mcp.resource("workspace://files")
+def workspace_files() -> str:
+    """List the files under MCP_WORKSPACE (read-only context).
+
+    A resource is application/user-provided context addressed by URI — the
+    counterpart to the read_text_file tool, which the model calls itself.
+    """
+    return "\n".join(sorted(p.name for p in WORKSPACE.iterdir()))
+
+
+@mcp.prompt
+def explain_word_count(text: str) -> str:
+    """Awareness-only example of the third MCP primitive: a reusable prompt.
+
+    In a minimal file/utility server a prompt is contrived — this exists so you
+    can see what a prompt looks like, not because it earns its keep here.
+    """
+    return f"Count the words in this text and explain your reasoning step by step:\n\n{text}"
+
+
 def main() -> None:
     mcp.run(show_banner=False)
 
