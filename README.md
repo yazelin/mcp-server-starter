@@ -22,6 +22,7 @@ Learn MCP by building a tiny dependency-light tool server.
 - Markdown 教學：[`docs/`](docs/)
 - 快速開始：[`docs/01-quickstart.md`](docs/01-quickstart.md)
 - 常見踩雷：[`docs/05-common-pitfalls.md`](docs/05-common-pitfalls.md)
+- 後半段(FastMCP 對照組):[`docs/08-fastmcp-comparison.md`](docs/08-fastmcp-comparison.md)
 
 ## Who this is for
 
@@ -33,6 +34,7 @@ Developers who want to connect Claude/Cursor/agents to their own tools.
 - Example tools: echo, now, read_text_file, word_count
 - Workspace safety boundary
 - Smoke test client
+- FastMCP rewrite of the same tools (optional `fastmcp` extra) — see `docs/08-fastmcp-comparison.md`
 
 ## Quick start
 
@@ -59,6 +61,14 @@ MCP_WORKSPACE="$PWD" uv run python server.py
 
 # Or run the installed console script (same stdio JSON-RPC server)
 MCP_WORKSPACE="$PWD" uv run mcp-server-starter
+```
+
+### 後半段:FastMCP 版(對照組)
+
+```bash
+uv sync --extra fastmcp
+MCP_SMOKE_TARGET=server_fastmcp.py uv run python client_smoke_test.py   # 同一份測試也過
+MCP_WORKSPACE="$PWD" uv run mcp-server-starter-fastmcp                  # 啟動 FastMCP server
 ```
 
 Configuration is a single environment variable, `MCP_WORKSPACE`, which bounds
