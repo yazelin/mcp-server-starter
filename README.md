@@ -50,7 +50,8 @@ git clone https://github.com/yazelin/mcp-server-starter.git
 cd mcp-server-starter
 uv sync
 
-# Run the smoke test (spawns server.py over stdio and exercises 3 JSON-RPC calls)
+# Run the smoke test (spawns server.py over stdio, exercises the protocol +
+# the workspace security boundary, and asserts the results — non-zero on failure)
 uv run python client_smoke_test.py
 
 # Or start the stdio server directly and pipe JSON-RPC into it

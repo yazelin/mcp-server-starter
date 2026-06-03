@@ -56,7 +56,7 @@ Installed 1 package in 0.76ms
 
 ## 步驟 2：跑 smoke test（最快的驗證）
 
-`client_smoke_test.py` 會用 subprocess 啟動 `server.py`，依序送出 `initialize`、`tools/list`、`tools/call`，並把每段 JSON-RPC 回應印出來。
+`client_smoke_test.py` 會用 subprocess 啟動 `server.py`，依序送出 `initialize`、`tools/list`、`tools/call`（echo、word_count）以及一次「逃出 workspace」的讀檔，把每段 JSON-RPC 回應印出來，最後對關鍵不變量做斷言（任何一項失敗會以非 0 結束，方便 CI 把關）。
 
 實際指令：
 
@@ -68,17 +68,23 @@ uv run python client_smoke_test.py
 
 ```json
 {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "mcp-server-starter", "version": "0.1.0"}}}
-{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", "description": "Echo text", "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}}, {"name": "now", "description": "Current local time", "inputSchema": {"type": "object", "properties": {}}}, {"name": "read_text_file", "description": "Read UTF-8 text under MCP_WORKSPACE", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}}]}}
+{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", "description": "Echo text", "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}}, {"name": "now", "description": "Current local time", "inputSchema": {"type": "object", "properties": {}}}, {"name": "read_text_file", "description": "Read UTF-8 text under MCP_WORKSPACE", "inputSchema": {"type": "object", "properties": {"path": {"type": "string"}}, "required": ["path"]}}, {"name": "word_count", "description": "Count whitespace-separated words in text", "inputSchema": {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"]}}]}}
 {"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "hello"}], "isError": false}}
+{"jsonrpc": "2.0", "id": 4, "result": {"content": [{"type": "text", "text": "5"}], "isError": false}}
+{"jsonrpc": "2.0", "id": 5, "result": {"content": [{"type": "text", "text": "Path escapes workspace"}], "isError": true}}
+
+OK: all 6 checks passed
 ```
 
-成功的話你會看到：**三行 JSON**，`id` 分別是 1、2、3。
+成功的話你會看到：**五行 JSON**（`id` 1–5），最後一行是 `OK: all 6 checks passed`。
 
 - `id:1` 是 `initialize` 的回應，帶 `protocolVersion` 與 `serverInfo`。
-- `id:2` 是 `tools/list`，列出 `echo` / `now` / `read_text_file` 三個工具。
+- `id:2` 是 `tools/list`，列出 `echo` / `now` / `read_text_file` / `word_count` 四個工具。
 - `id:3` 是 `tools/call` 呼叫 `echo`，回 `"text": "hello"`、`"isError": false`。
+- `id:4` 是 `tools/call` 呼叫 `word_count`，數「the quick brown fox jumps」5 個詞回 `"5"`。
+- `id:5` 是故意用 `../../etc/passwd` 逃出 workspace，被 `safe()` 擋下，回 `"Path escapes workspace"`、`"isError": true`（這是「好的」失敗——乾淨的工具錯誤，不是連線壞掉）。
 
-只要這三行都出現、`isError` 是 `false`，就代表 client 與 server 的協定流程完全跑通了。
+只要看到 `OK: all 6 checks passed`、且前面該成功的 `isError` 是 `false`、逃逸那筆是 `true`，就代表 client 與 server 的協定流程與安全邊界都跑通了。
 
 ## 步驟 3：手動把 JSON-RPC 餵進 server（理解協定）
 
@@ -98,7 +104,7 @@ printf '%s\n' \
 
 ```json
 {"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "mcp-server-starter", "version": "0.1.0"}}}
-{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", ...}, {"name": "now", ...}, {"name": "read_text_file", ...}]}}
+{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", ...}, {"name": "now", ...}, {"name": "read_text_file", ...}, {"name": "word_count", ...}]}}
 {"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "2026-06-02T03:28:51+08:00"}], "isError": false}}
 ```
 
@@ -132,7 +138,7 @@ printf '%s\n' \
 
 跑完上面四步，你應該能勾掉這份清單：
 
-- [ ] `uv run python client_smoke_test.py` 印出三行 JSON，`id` 1/2/3 都有，`isError` 為 `false`。
+- [ ] `uv run python client_smoke_test.py` 印出五行 JSON（`id` 1–5）並以 `OK: all 6 checks passed` 收尾，該成功的 `isError` 為 `false`、逃逸那筆為 `true`。
 - [ ] 手動 pipe 時，`tools/call` 的 `now` 回了一個合理時間。
 - [ ] `read_text_file` 能讀到 `MCP_WORKSPACE` 內的檔案。
 - [ ] 沒有把任何 secret 或本機絕對路徑誤 commit 到 GitHub。

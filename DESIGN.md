@@ -24,7 +24,7 @@
 
 ## 功能賣點
 
-- 內建 echo / now / read_text_file 三個工具
+- 內建 echo / now / read_text_file / word_count 四個工具（word_count 為 step-by-step 教學示範用的內建範例）
 - 用 workspace boundary 示範基本安全邊界
 - 不依賴大型框架，先看懂 MCP 協定形狀
 - 可延伸到 FastMCP、Claude Desktop、Cursor 或企業工具

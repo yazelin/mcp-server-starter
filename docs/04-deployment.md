@@ -4,7 +4,7 @@
 
 ## 接入前檢查
 
-- 已跑過 `uv sync`，且本機流程跑通（`uv run python client_smoke_test.py` 會印出三段 JSON-RPC 回應）。
+- 已跑過 `uv sync`，且本機流程跑通（`uv run python client_smoke_test.py` 會印出五段 JSON-RPC 回應並以 `OK: all 6 checks passed` 收尾，含一筆 workspace 邊界測試）。
 - 設定好 `MCP_WORKSPACE`，確認 `read_text_file` 只能讀到你預期的目錄。
 - `server.py`（或安裝後的 `mcp-server-starter` 指令）路徑是 client 能存取的絕對路徑。
 - 執行檔有讀取權限；workspace 目錄權限正確。

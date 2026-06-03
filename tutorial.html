@@ -50,15 +50,19 @@ Installed 1 package in 0.76ms
  + mcp-server-starter==0.1.0 (from file:///path/to/mcp-server-starter)
 </code></pre>
 <h3>步驟 2：跑 smoke test</h3>
-<p>它會用 subprocess 啟動 server.py，依序送 initialize、tools/list、tools/call。</p>
+<p>它會用 subprocess 啟動 server.py，依序送 initialize、tools/list、tools/call（echo、word_count）以及一次「逃出 workspace」的讀檔，最後對結果做斷言（失敗以非 0 結束，方便 CI 把關）。</p>
 <pre><code>uv run python client_smoke_test.py
 </code></pre>
 <p>真實輸出（實際跑出來貼上）：</p>
 <pre><code>{"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "mcp-server-starter", "version": "0.1.0"}}}
-{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", ...}, {"name": "now", ...}, {"name": "read_text_file", ...}]}}
+{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", ...}, {"name": "now", ...}, {"name": "read_text_file", ...}, {"name": "word_count", ...}]}}
 {"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "hello"}], "isError": false}}
+{"jsonrpc": "2.0", "id": 4, "result": {"content": [{"type": "text", "text": "5"}], "isError": false}}
+{"jsonrpc": "2.0", "id": 5, "result": {"content": [{"type": "text", "text": "Path escapes workspace"}], "isError": true}}
+
+OK: all 6 checks passed
 </code></pre>
-<p>成功會看到：三行 JSON，id 1/2/3 都有，id:3 的 echo 回 "hello"、isError 為 false。</p>
+<p>成功會看到：五行 JSON（id 1–5）並以 OK: all 6 checks passed 收尾，id:3 echo 回 "hello"、id:4 word_count 回 "5"、id:5 逃逸被擋下 isError 為 true。</p>
 <h3>步驟 3：手動把 JSON-RPC 餵進 server</h3>
 <pre><code>printf '%s\n' \
 '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"now","arguments":{}}}' \
@@ -69,7 +73,7 @@ Installed 1 package in 0.76ms
 </code></pre>
 <h3>第一次成功的標準</h3>
 <ul>
-<li>uv run python client_smoke_test.py 印出三行 JSON，isError 為 false。</li>
+<li>uv run python client_smoke_test.py 印出五行 JSON 並以 OK: all 6 checks passed 收尾，該成功的 isError 為 false、逃逸那筆為 true。</li>
 <li>手動 pipe 時 now 回了一個合理時間。</li>
 <li>read_text_file 能讀到 MCP_WORKSPACE 內的檔案。</li>
 <li>沒有把 secret 或本機絕對路徑誤 commit 到 GitHub。</li>
@@ -129,7 +133,7 @@ Installed 1 package in 0.76ms
 <p>這是純 stdio 的 MCP server：沒有 HTTP port、沒有 /health endpoint，也不部署到 Render / Railway / Fly.io。MCP client（例如 Claude Desktop）會把它當 subprocess 啟動，透過標準輸入／輸出交換 JSON-RPC。「部署」其實是「讓 client 知道怎麼啟動這支程式」。</p>
 <h3>接入前檢查</h3>
 <ul>
-<li>已跑過 uv sync，本機流程跑通（uv run python client_smoke_test.py 印出三段 JSON-RPC 回應）。</li>
+<li>已跑過 uv sync，本機流程跑通（uv run python client_smoke_test.py 印出五段 JSON-RPC 回應並以 OK 收尾，含一筆 workspace 邊界測試）。</li>
 <li>設好 MCP_WORKSPACE，read_text_file 只能讀到預期目錄。</li>
 <li>server.py（或安裝後的 mcp-server-starter 指令）是 client 能存取的絕對路徑。</li>
 <li>stdout 只輸出 JSON-RPC，debug 訊息寫 stderr，否則破壞 framing。</li>
