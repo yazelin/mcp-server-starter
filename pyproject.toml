@@ -8,12 +8,17 @@ version = "0.1.0"
 description = "Minimal dependency-light MCP server starter"
 requires-python = ">=3.10"
 
+[project.optional-dependencies]
+fastmcp = ["fastmcp>=3.4,<4"]
+
 [project.scripts]
 mcp-server-starter = "server:main"
+mcp-server-starter-fastmcp = "server_fastmcp:main"
 
 [tool.hatch.build.targets.wheel]
-# server.py is a single top-level module (not a package).
-only-include = ["server.py"]
+# Two single top-level modules (not a package).
+only-include = ["server.py", "server_fastmcp.py"]
 
 [tool.hatch.build.targets.wheel.sources]
 "server.py" = "server.py"
+"server_fastmcp.py" = "server_fastmcp.py"
