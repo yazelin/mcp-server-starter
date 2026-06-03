@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MCP Server 入門模板｜完整教學</title><meta name="description" content="MCP Server 入門模板 的公開教學文件：快速開始、架構、部署、踩雷與改造方向。"><style>:root{--bg:#0f0a1f;--accent:#a78bfa;--text:#f8fafc;--muted:#94a3b8;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.12)}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%, color-mix(in srgb,var(--accent) 24%,transparent), transparent 36%),linear-gradient(180deg,var(--bg),#05070b);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC','Segoe UI',sans-serif;line-height:1.75}a{color:inherit}.wrap{max-width:1120px;margin:0 auto;padding:32px 20px 80px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:54px}.brand{font-weight:900;text-decoration:none}.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);padding:10px 14px;border-radius:999px;text-decoration:none;background:rgba(255,255,255,.04)}.primary{background:var(--accent);color:#020617;border-color:transparent;font-weight:800}.hero{padding:48px;border:1px solid var(--border);border-radius:28px;background:var(--panel);box-shadow:0 24px 80px rgba(0,0,0,.32)}h1{font-size:clamp(34px,6vw,72px);line-height:1.05;margin:0 0 20px}.lead{font-size:22px;color:#dbeafe;max-width:820px}.muted{color:var(--muted)}.toc{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0}.toc a{font-size:14px;text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:8px 12px;color:#dbeafe;background:rgba(255,255,255,.04)}main{display:grid;gap:22px;margin-top:28px}section{border:1px solid var(--border);border-radius:24px;background:rgba(255,255,255,.045);padding:28px;min-width:0}h2{font-size:30px;line-height:1.25;margin:0 0 16px}h3{font-size:21px;margin-top:24px;color:#e2e8f0}p,li{color:#cbd5e1}pre{background:#020617;border:1px solid rgba(148,163,184,.25);border-radius:16px;padding:18px;overflow:auto;max-width:100%}code{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;color:#bfdbfe}ul,ol{padding-left:24px}.footer{margin-top:40px;color:var(--muted);font-size:14px}@media(max-width:720px){.top{align-items:flex-start;flex-direction:column}.hero{padding:28px}}</style><style>/* CTA polish: solid deep button + white bold text */.primary,.btn.primary{background:#7c3aed!important;background-image:none!important;color:#fff!important;border-color:transparent!important}.form button,.card.form button,.ml-embedded button[type=submit],.ml-embedded .ml-form-embedSubmit button{background:#7c3aed!important;background-image:none!important;color:#fff!important}/* unified content links = page accent */a:not([class]){color:var(--accent)!important}a:not([class]):hover{filter:brightness(1.25)}</style></head><body><div class="wrap"><nav class="top"><a class="brand" href="index.html">← MCP Server</a><div><a class="btn" href="https://github.com/yazelin/mcp-server-starter">GitHub</a> <a class="btn primary" href="#contact">工作坊 / 顧問</a></div></nav><header class="hero"><p class="muted">公開教學文件</p><h1>MCP Server 入門模板</h1><p class="lead">用最小 JSON-RPC MCP server 看懂工具註冊、工具呼叫與安全邊界。</p><p class="muted">Markdown 原始檔也放在 <code>docs/</code>，這個頁面方便用瀏覽器直接閱讀。</p><div class="toc"><a href='docs/00-overview.md'>00-overview</a><a href='docs/01-quickstart.md'>01-quickstart</a><a href='docs/02-architecture.md'>02-architecture</a><a href='docs/03-step-by-step.md'>03-step-by-step</a><a href='docs/04-deployment.md'>04-deployment</a><a href='docs/05-common-pitfalls.md'>05-common-pitfalls</a><a href='docs/06-customize-for-your-use-case.md'>06-customize-for-your-use-case</a><a href='docs/07-workshop-and-consulting.md'>07-workshop-and-consulting</a></div></header><main><section><h2>MCP Server 入門模板：總覽</h2>
+<!doctype html><html lang="zh-Hant-TW"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MCP Server 入門模板｜完整教學</title><meta name="description" content="MCP Server 入門模板 的公開教學文件：快速開始、架構、部署、踩雷與改造方向。"><style>:root{--bg:#0f0a1f;--accent:#a78bfa;--text:#f8fafc;--muted:#94a3b8;--panel:rgba(255,255,255,.06);--border:rgba(255,255,255,.12)}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0%, color-mix(in srgb,var(--accent) 24%,transparent), transparent 36%),linear-gradient(180deg,var(--bg),#05070b);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC','Segoe UI',sans-serif;line-height:1.75}a{color:inherit}.wrap{max-width:1120px;margin:0 auto;padding:32px 20px 80px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:54px}.brand{font-weight:900;text-decoration:none}.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);padding:10px 14px;border-radius:999px;text-decoration:none;background:rgba(255,255,255,.04)}.primary{background:var(--accent);color:#020617;border-color:transparent;font-weight:800}.hero{padding:48px;border:1px solid var(--border);border-radius:28px;background:var(--panel);box-shadow:0 24px 80px rgba(0,0,0,.32)}h1{font-size:clamp(34px,6vw,72px);line-height:1.05;margin:0 0 20px}.lead{font-size:22px;color:#dbeafe;max-width:820px}.muted{color:var(--muted)}.toc{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0}.toc a{font-size:14px;text-decoration:none;border:1px solid var(--border);border-radius:999px;padding:8px 12px;color:#dbeafe;background:rgba(255,255,255,.04)}main{display:grid;gap:22px;margin-top:28px}section{border:1px solid var(--border);border-radius:24px;background:rgba(255,255,255,.045);padding:28px;min-width:0}h2{font-size:30px;line-height:1.25;margin:0 0 16px}h3{font-size:21px;margin-top:24px;color:#e2e8f0}p,li{color:#cbd5e1}pre{background:#020617;border:1px solid rgba(148,163,184,.25);border-radius:16px;padding:18px;overflow:auto;max-width:100%}code{font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;color:#bfdbfe}ul,ol{padding-left:24px}.footer{margin-top:40px;color:var(--muted);font-size:14px}@media(max-width:720px){.top{align-items:flex-start;flex-direction:column}.hero{padding:28px}}</style><style>/* CTA polish: solid deep button + white bold text */.primary,.btn.primary{background:#7c3aed!important;background-image:none!important;color:#fff!important;border-color:transparent!important}.form button,.card.form button,.ml-embedded button[type=submit],.ml-embedded .ml-form-embedSubmit button{background:#7c3aed!important;background-image:none!important;color:#fff!important}/* unified content links = page accent */a:not([class]){color:var(--accent)!important}a:not([class]):hover{filter:brightness(1.25)}</style></head><body><div class="wrap"><nav class="top"><a class="brand" href="index.html">← MCP Server</a><div><a class="btn" href="https://github.com/yazelin/mcp-server-starter">GitHub</a> <a class="btn primary" href="#contact">工作坊 / 顧問</a></div></nav><header class="hero"><p class="muted">公開教學文件</p><h1>MCP Server 入門模板</h1><p class="lead">用最小 JSON-RPC MCP server 看懂工具註冊、工具呼叫與安全邊界。</p><p class="muted">Markdown 原始檔也放在 <code>docs/</code>，這個頁面方便用瀏覽器直接閱讀。</p><div class="toc"><a href='docs/00-overview.md'>00-overview</a><a href='docs/01-quickstart.md'>01-quickstart</a><a href='docs/02-architecture.md'>02-architecture</a><a href='docs/03-step-by-step.md'>03-step-by-step</a><a href='docs/04-deployment.md'>04-deployment</a><a href='docs/05-common-pitfalls.md'>05-common-pitfalls</a><a href='docs/06-customize-for-your-use-case.md'>06-customize-for-your-use-case</a><a href='docs/07-workshop-and-consulting.md'>07-workshop-and-consulting</a><a href='docs/08-fastmcp-comparison.md'>08-fastmcp-comparison</a></div></header><main><section><h2>MCP Server 入門模板：總覽</h2>
 <p>用最小 JSON-RPC MCP server 看懂工具註冊、工具呼叫與安全邊界。</p>
 <h3>適合誰</h3>
 <p>想讓 Claude、Cursor、Agent 調用自家工具/API 的開發者。</p>
@@ -50,15 +50,19 @@ Installed 1 package in 0.76ms
  + mcp-server-starter==0.1.0 (from file:///path/to/mcp-server-starter)
 </code></pre>
 <h3>步驟 2：跑 smoke test</h3>
-<p>它會用 subprocess 啟動 server.py，依序送 initialize、tools/list、tools/call。</p>
+<p>它會用 subprocess 啟動 server.py，依序送 initialize、tools/list、tools/call（echo、word_count）以及一次「逃出 workspace」的讀檔，最後對結果做斷言（失敗以非 0 結束，方便 CI 把關）。</p>
 <pre><code>uv run python client_smoke_test.py
 </code></pre>
 <p>真實輸出（實際跑出來貼上）：</p>
 <pre><code>{"jsonrpc": "2.0", "id": 1, "result": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}, "serverInfo": {"name": "mcp-server-starter", "version": "0.1.0"}}}
-{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", ...}, {"name": "now", ...}, {"name": "read_text_file", ...}]}}
+{"jsonrpc": "2.0", "id": 2, "result": {"tools": [{"name": "echo", ...}, {"name": "now", ...}, {"name": "read_text_file", ...}, {"name": "word_count", ...}]}}
 {"jsonrpc": "2.0", "id": 3, "result": {"content": [{"type": "text", "text": "hello"}], "isError": false}}
+{"jsonrpc": "2.0", "id": 4, "result": {"content": [{"type": "text", "text": "5"}], "isError": false}}
+{"jsonrpc": "2.0", "id": 5, "result": {"content": [{"type": "text", "text": "Path escapes workspace"}], "isError": true}}
+
+OK: all 6 checks passed
 </code></pre>
-<p>成功會看到：三行 JSON，id 1/2/3 都有，id:3 的 echo 回 "hello"、isError 為 false。</p>
+<p>成功會看到：五行 JSON（id 1–5）並以 OK: all 6 checks passed 收尾，id:3 echo 回 "hello"、id:4 word_count 回 "5"、id:5 逃逸被擋下 isError 為 true。</p>
 <h3>步驟 3：手動把 JSON-RPC 餵進 server</h3>
 <pre><code>printf '%s\n' \
 '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"now","arguments":{}}}' \
@@ -69,7 +73,7 @@ Installed 1 package in 0.76ms
 </code></pre>
 <h3>第一次成功的標準</h3>
 <ul>
-<li>uv run python client_smoke_test.py 印出三行 JSON，isError 為 false。</li>
+<li>uv run python client_smoke_test.py 印出五行 JSON 並以 OK: all 6 checks passed 收尾，該成功的 isError 為 false、逃逸那筆為 true。</li>
 <li>手動 pipe 時 now 回了一個合理時間。</li>
 <li>read_text_file 能讀到 MCP_WORKSPACE 內的檔案。</li>
 <li>沒有把 secret 或本機絕對路徑誤 commit 到 GitHub。</li>
@@ -129,7 +133,7 @@ Installed 1 package in 0.76ms
 <p>這是純 stdio 的 MCP server：沒有 HTTP port、沒有 /health endpoint，也不部署到 Render / Railway / Fly.io。MCP client（例如 Claude Desktop）會把它當 subprocess 啟動，透過標準輸入／輸出交換 JSON-RPC。「部署」其實是「讓 client 知道怎麼啟動這支程式」。</p>
 <h3>接入前檢查</h3>
 <ul>
-<li>已跑過 uv sync，本機流程跑通（uv run python client_smoke_test.py 印出三段 JSON-RPC 回應）。</li>
+<li>已跑過 uv sync，本機流程跑通（uv run python client_smoke_test.py 印出五段 JSON-RPC 回應並以 OK 收尾，含一筆 workspace 邊界測試）。</li>
 <li>設好 MCP_WORKSPACE，read_text_file 只能讀到預期目錄。</li>
 <li>server.py（或安裝後的 mcp-server-starter 指令）是 client 能存取的絕對路徑。</li>
 <li>stdout 只輸出 JSON-RPC，debug 訊息寫 stderr，否則破壞 framing。</li>
@@ -223,7 +227,81 @@ Installed 1 package in 0.76ms
 <li>GitHub repo：https://github.com/yazelin/mcp-server-starter</li>
 <li>Email：yazelin@ching-tech.com</li>
 </ul>
-<p>建議你先照公開教學跑一次，然後帶著具體錯誤訊息或想改造的場景來討論，效率最高。</p></section></main><section id="resources"><h2>關於作者 / 延伸資源</h2>
+<p>建議你先照公開教學跑一次，然後帶著具體錯誤訊息或想改造的場景來討論，效率最高。</p></section><section><h2>Part 2：用 FastMCP 重寫(對照組)</h2>
+<p>前半段（<code>01</code>/<code>03</code>）你已經從零手刻了一個 stdio JSON-RPC server，看懂了協定的每一段。這一段是課程後半：同樣的功能，改用 FastMCP 寫，讓你親眼看到「同樣的事，可以多簡單」。</p>
+<p>這是獨立的一課——你可以先只跑前半段，真的體會過手刻的繁瑣，再回來看這段，對照感最強。</p>
+<h3>先講結論：差在哪</h3>
+<table style="width:100%;border-collapse:collapse;color:#cbd5e1;font-size:15px">
+<thead><tr style="border-bottom:1px solid rgba(255,255,255,.2)">
+<th style="text-align:left;padding:8px 12px">面向</th>
+<th style="text-align:left;padding:8px 12px">完全手刻（server.py）</th>
+<th style="text-align:left;padding:8px 12px">FastMCP（server_fastmcp.py）</th>
+</tr></thead>
+<tbody>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">工具 schema</td><td style="padding:8px 12px">自己手寫 <code>inputSchema</code> JSON</td><td style="padding:8px 12px">從 type hints 自動生成</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">回傳包裝</td><td style="padding:8px 12px">自己包成 <code>content</code> 陣列</td><td style="padding:8px 12px">框架自動包</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">error 信封</td><td style="padding:8px 12px">自己組 <code>isError</code> / JSON-RPC error code</td><td style="padding:8px 12px">框架處理（tool 拋例外即 <code>isError:true</code>）</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">transport / handshake</td><td style="padding:8px 12px">自己寫 stdin loop、<code>initialize</code> 回應</td><td style="padding:8px 12px"><code>mcp.run()</code> 一行</td></tr>
+<tr style="border-bottom:1px solid rgba(255,255,255,.08)"><td style="padding:8px 12px">三原語</td><td style="padding:8px 12px">只有 tool</td><td style="padding:8px 12px">tool + resource + prompt 都只要一個 decorator</td></tr>
+<tr><td style="padding:8px 12px"><strong>安全邊界</strong></td><td style="padding:8px 12px">自己寫 <code>safe()</code></td><td style="padding:8px 12px"><strong>一樣要自己寫 <code>safe()</code></strong></td></tr>
+</tbody>
+</table>
+<p>兩條核心訊息：</p>
+<ul>
+<li>FastMCP 幫你做掉協定樣板：schema、content 包裝、error 信封、transport/handshake 全包了。對照 <code>server.py</code> 那段密密麻麻的 <code>handle()</code>，FastMCP 版只是一串 <code>@mcp.tool</code>。</li>
+<li>FastMCP 不幫你做你的安全邏輯：<code>read_text_file</code> 的路徑沙箱還是你自己寫的同一個 <code>safe()</code>。記住這句：框架省掉協定樣板，但安全邏輯永遠是你自己的責任。</li>
+</ul>
+<h3>步驟 1：裝 FastMCP</h3>
+<p>前半段 <code>uv sync</code> 不裝任何第三方套件。FastMCP 版需要多裝一個套件，所以放在 optional extra：</p>
+<pre><code>uv sync --extra fastmcp
+</code></pre>
+<p>成功的話 <code>uv run python -c "import fastmcp; print(fastmcp.__version__)"</code> 會印出 <code>3.4.x</code>。對照點：多一個相依、多一步安裝，但下面你會看到程式碼少一大截。</p>
+<h3>步驟 2：看 server_fastmcp.py</h3>
+<p>完整檔案在 repo 根目錄。重點是：每個工具就是一個帶 type hints 的函式 + 一個 decorator，schema 由 FastMCP 從型別自動生：</p>
+<pre><code>from fastmcp import FastMCP
+mcp = FastMCP("mcp-server-starter-fastmcp")
+
+@mcp.tool
+def echo(text: str) -> str:
+    """Echo text"""
+    return text
+
+@mcp.tool
+def word_count(text: str) -> str:
+    """Count whitespace-separated words in text"""
+    return str(len(text.split()))
+</code></pre>
+<p>對照手刻版：你不用寫 <code>inputSchema</code>（型別就是 schema）、不用把回傳包成 <code>content</code> 陣列、不用組 error。<code>read_text_file</code> 唯一「自己寫」的部分，是那個跟 <code>server.py</code> 一模一樣的 <code>safe()</code> 邊界——這正是重點。</p>
+<h3>步驟 3：跑同一份 smoke test</h3>
+<p>關鍵設計：<code>client_smoke_test.py</code> 用 <code>MCP_SMOKE_TARGET</code> 切換目標，同一份測試、同一組斷言，對兩種實作都過——證明它們行為完全相同。</p>
+<pre><code>MCP_SMOKE_TARGET=server_fastmcp.py uv run python client_smoke_test.py
+</code></pre>
+<p>收尾會看到 <code>OK: all 6 checks passed (target=server_fastmcp.py)</code>。把 <code>MCP_SMOKE_TARGET</code> 拿掉（預設 <code>server.py</code>）再跑一次，你會看到同樣 6 項全過——兩種寫法、同一份測試。</p>
+<h3>步驟 4：第三原語——resource 與 prompt</h3>
+<p>手刻版只有 tool。FastMCP 讓另外兩個原語也只要一個 decorator。先分清楚三者「誰主導」：</p>
+<ul>
+<li><strong>tool</strong>：模型自己決定何時呼叫（echo / now / read_text_file / word_count）。</li>
+<li><strong>resource</strong>：應用程式/使用者挑來當 context 的唯讀資料，用 URI 定址。</li>
+<li><strong>prompt</strong>：使用者主動觸發的可重用提示範本（在 client 端常是 slash 指令）。</li>
+</ul>
+<p>resource 範例（跟 <code>read_text_file</code> 這個 tool 成對照——同一個 workspace，一個模型主動讀、一個應用提供）：</p>
+<pre><code>@mcp.resource("workspace://files")
+def workspace_files() -> str:
+    """List the files under MCP_WORKSPACE (read-only context)."""
+    return "\n".join(sorted(p.name for p in WORKSPACE.iterdir()))
+</code></pre>
+<p>prompt 範例——<strong>這個放在這裡是「認識用」</strong>：在這種極簡工具 server 裡 prompt 沒有非做不可的好理由，放一個最小範例只是讓你知道有這個原語、它長什麼樣：</p>
+<pre><code>@mcp.prompt
+def explain_word_count(text: str) -> str:
+    """Awareness-only example of the third MCP primitive."""
+    return f"Count the words in this text and explain your reasoning step by step:\n\n{text}"
+</code></pre>
+<h3>何時選哪一種</h3>
+<ul>
+<li><strong>手刻</strong>（前半段）：學習、理解協定、極簡或受限環境（不想帶第三方相依）。</li>
+<li><strong>FastMCP</strong>（這一段）：實際做事、工具一多、要 resource/prompt、長期維護——少寫一堆樣板，專注在你的邏輯與安全邊界。</li>
+</ul>
+<p>兩者不是取代關係：先手刻看懂底層，再用 FastMCP 拿生產力，你會更知道框架替你做了什麼、又沒替你做什麼。</p></section></main><section id="resources"><h2>關於作者 / 延伸資源</h2>
 <p>這個範本由 <strong>林亞澤（Yaze Lin）</strong> 維護 — 出身機電自動化系統整合，現在把同一套工程方法用在 AI 產品上。任職於 <strong>擎添工業 ChingTech</strong>（1984 年成立的機電自動化公司：PLC 程式、機械手臂、AGV 無人搬運、半導體封測／PCB／面板／光學產線整合）。</p>
 <p class="muted">技術筆記與更多範例：<a href="https://yazelin.github.io">yazelin.github.io</a> · GitHub <a href="https://github.com/yazelin">@yazelin</a></p>
 <h3>從範本到正式產品</h3>

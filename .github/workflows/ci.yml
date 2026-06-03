@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        track: [stdlib, fastmcp]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      # stdlib track: zero third-party deps, hand-rolled server
+      - name: Sync (stdlib)
+        if: matrix.track == 'stdlib'
+        run: uv sync
+      - name: Shared smoke test against hand-rolled server
+        if: matrix.track == 'stdlib'
+        run: uv run python client_smoke_test.py
+
+      # fastmcp track: installs the extra, same shared test + bonus
+      - name: Sync with FastMCP extra
+        if: matrix.track == 'fastmcp'
+        run: uv sync --extra fastmcp
+      - name: Shared smoke test against FastMCP server
+        if: matrix.track == 'fastmcp'
+        env:
+          MCP_SMOKE_TARGET: server_fastmcp.py
+        run: uv run python client_smoke_test.py
+      - name: FastMCP bonus checks (resource + prompt)
+        if: matrix.track == 'fastmcp'
+        run: uv run python client_smoke_test_fastmcp.py

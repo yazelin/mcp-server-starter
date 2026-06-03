@@ -22,6 +22,7 @@ Learn MCP by building a tiny dependency-light tool server.
 - Markdown 教學：[`docs/`](docs/)
 - 快速開始：[`docs/01-quickstart.md`](docs/01-quickstart.md)
 - 常見踩雷：[`docs/05-common-pitfalls.md`](docs/05-common-pitfalls.md)
+- 後半段(FastMCP 對照組):[`docs/08-fastmcp-comparison.md`](docs/08-fastmcp-comparison.md)
 
 ## Who this is for
 
@@ -33,6 +34,7 @@ Developers who want to connect Claude/Cursor/agents to their own tools.
 - Example tools: echo, now, read_text_file, word_count
 - Workspace safety boundary
 - Smoke test client
+- FastMCP rewrite of the same tools (optional `fastmcp` extra) — see `docs/08-fastmcp-comparison.md`
 
 ## Quick start
 
@@ -50,7 +52,8 @@ git clone https://github.com/yazelin/mcp-server-starter.git
 cd mcp-server-starter
 uv sync
 
-# Run the smoke test (spawns server.py over stdio and exercises 3 JSON-RPC calls)
+# Run the smoke test (spawns server.py over stdio, exercises the protocol +
+# the workspace security boundary, and asserts the results — non-zero on failure)
 uv run python client_smoke_test.py
 
 # Or start the stdio server directly and pipe JSON-RPC into it
@@ -60,9 +63,17 @@ MCP_WORKSPACE="$PWD" uv run python server.py
 MCP_WORKSPACE="$PWD" uv run mcp-server-starter
 ```
 
+### 後半段:FastMCP 版(對照組)
+
+```bash
+uv sync --extra fastmcp
+MCP_SMOKE_TARGET=server_fastmcp.py uv run python client_smoke_test.py   # 同一份測試也過
+MCP_WORKSPACE="$PWD" uv run mcp-server-starter-fastmcp                  # 啟動 FastMCP server
+```
+
 Configuration is a single environment variable, `MCP_WORKSPACE`, which bounds
 what `read_text_file` is allowed to read. If unset, it defaults to the current
-working directory. There is no `.env` file and no third-party dependency.
+working directory. There is no `.env` file and no *required* third-party dependency — the front half is pure stdlib; FastMCP is an optional extra (`--extra fastmcp`).
 
 這個 starter 只用 Python 標準函式庫，`[project].dependencies` 是空的，所以 `uv sync` 只會 build 並安裝本專案這一個 package。沒裝 uv 的話 `pip install .` 也能裝，但本教學以 uv 為主。
 
