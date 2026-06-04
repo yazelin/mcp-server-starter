@@ -127,3 +127,12 @@ FastMCP 版預設也是 stdio,所以 Claude Desktop 設定方式跟 `04-deployme
 - **FastMCP**(這一段):實際做事、工具一多、要 resource/prompt、長期維護 —— 少寫一堆樣板,專注在你的邏輯與安全邊界。
 
 兩者不是取代關係:先手刻看懂底層,再用 FastMCP 拿生產力,你會更知道框架替你做了什麼、又沒替你做什麼。
+
+## 延伸資源 · Awesome MCP
+
+看懂協定後,想挖更多真實 MCP server:
+
+- [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers) — 官方參考實作集合。
+- [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers) — 社群整理的 MCP server 大清單。
+
+也可以看本作者的真實 MCP:[erpnext-mcp](https://github.com/yazelin/erpnext-mcp)(接 ERPNext REST API)、[nanobanana-py](https://github.com/yazelin/nanobanana-py)(影像生成 MCP)。
