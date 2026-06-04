@@ -118,13 +118,13 @@ code{font-family:'JetBrains Mono',monospace}
     <div class="tag">Quick Win</div>
     <h2>5 分鐘跑起來</h2>
     <p class="muted">需要 <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv</a>。不需要任何 API key。</p>
-    <div class="step">① 取得並安裝</div>
+    <div class="step"><strong>1.</strong> 取得並安裝</div>
     <pre><code>git clone https://github.com/yazelin/mcp-server-starter.git
 cd mcp-server-starter
 uv sync</code></pre>
-    <div class="step">② 跑 smoke test（最快的驗證）</div>
+    <div class="step"><strong>2.</strong> 跑 smoke test（最快的驗證）</div>
     <pre><code>uv run python client_smoke_test.py</code></pre>
-    <div class="step">③ 真實輸出</div>
+    <div class="step"><strong>3.</strong> 真實輸出</div>
     <pre><code>{"id": 1, "result": {"protocolVersion": "2024-11-05", ...}}
 {"id": 2, "result": {"tools": [echo, now, read_text_file, word_count]}}
 {"id": 3, "result": {"content": [{"type":"text","text":"hello"}], "isError": false}}
